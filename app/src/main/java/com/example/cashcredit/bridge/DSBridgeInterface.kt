@@ -440,9 +440,17 @@ class DSBridgeInterface(private val context: Context) {
     @JavascriptInterface
     fun loginSuccess(args: Any?, handler: CompletionHandler<String>) {
         try {
+            // 先检查是否为 JSONObject.NULL 或 null
+            if (args == null || args == org.json.JSONObject.NULL) {
+                handler.complete("""{"success": false, "message": "args is null"}""")
+                return
+            }
             // DSBridge可能传递String(JSON字符串)或JSONObject
             val jsonObj = when (args) {
-                is org.json.JSONObject -> args
+                is org.json.JSONObject -> {
+                    // 再次检查是否是 JSONObject.NULL
+                    if (args == org.json.JSONObject.NULL) null else args
+                }
                 is String -> {
                     if (args.isNotEmpty()) {
                         org.json.JSONObject(args)
@@ -497,8 +505,16 @@ class DSBridgeInterface(private val context: Context) {
         var password = ""
 
         try {
+            // 先检查是否为 JSONObject.NULL 或 null
+            if (args == null || args == org.json.JSONObject.NULL) {
+                handler.complete("""{"success": false, "message": "args is null"}""")
+                return
+            }
             val jsonObj = when (args) {
-                is org.json.JSONObject -> args
+                is org.json.JSONObject -> {
+                    // 再次检查是否是 JSONObject.NULL
+                    if (args == org.json.JSONObject.NULL) null else args
+                }
                 is String -> if (args.isNotEmpty()) org.json.JSONObject(args) else null
                 else -> null
             }
@@ -539,63 +555,6 @@ class DSBridgeInterface(private val context: Context) {
             } catch (e: Exception) {
                 handler.complete("""{"success": false, "message": "${e.message}"}""")
             }
-        }
-    }
-
-    /**
-     * 显示权限说明弹窗 (异步方法)
-     * H5调用: dsBridge.call("showPermissionDescDialog", null, function(result) {})
-     * 或带可选参数: dsBridge.call("showPermissionDescDialog", {"title": "自定义标题"}, function(result) {})
-     * 返回格式: { "success": true/false, "allGranted": true/false }
-     *
-     * 弹窗会显示以下权限说明：
-     * - 相机权限：用于拍摄照片完成身份验证
-     * - 地理位置权限：用于风控和服务定位
-     * - 短信权限：用于身份验证和风控
-     * - 应用列表权限：用于风控评估
-     *
-     * 点击确认按钮后自动请求权限，权限结果通过回调返回给H5
-     * 如果权限被拒绝会引导用户去设置界面开启权限
-     *
-     * 注意：此方法只获取权限结果，如需上传设备数据，请调用 uploadDeviceData 方法
-     */
-    @JavascriptInterface
-    fun showPermissionDescDialog(args: Any?, handler: CompletionHandler<String>) {
-        if (context !is android.app.Activity) {
-            handler.complete("""{"success": false, "allGranted": false, "error": "Context is not Activity"}""")
-            return
-        }
-
-        val activity = context as android.app.Activity
-
-        // 解析可选参数
-        var title: String? = null
-
-        try {
-            val jsonObj = args as? org.json.JSONObject
-            title = jsonObj?.optString("title", null)
-        } catch (e: Exception) {
-            // 参数解析失败，使用默认值
-        }
-
-        // 使用PermissionHelper中统一管理的权限列表
-        val requiredPermissions = PermissionHelper.REQUIRED_PERMISSIONS
-
-        // 检查是否所有权限都已授予
-        val allGranted = requiredPermissions.all {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (allGranted) {
-            // 所有权限已授予，直接返回成功结果
-            handler.complete("""{"success": true, "allGranted": true}""")
-        } else {
-            // 有未授予的权限，显示权限弹窗
-            PermissionDialogManager.showDialog(
-                activity,
-                handler,
-                title
-            )
         }
     }
 
@@ -717,22 +676,35 @@ class DSBridgeInterface(private val context: Context) {
      */
     @JavascriptInterface
     fun uploadDeviceData(args: Any?, handler: CompletionHandler<String>) {
-        // 解析参数 - DSBridge可能传递String(JSON字符串)或JSONObject
+        // 解析参数 - DSBridge可能传递String(JSON字符串)、JSONObject或JSONObject.NULL
         var sceneType = ""
 
         try {
-            val jsonObj = when (args) {
-                is org.json.JSONObject -> args
-                is String -> {
-                    if (args.isNotEmpty()) {
-                        org.json.JSONObject(args)
-                    } else {
-                        null
+            // 先检查是否为 JSONObject.NULL 或 null
+            if (args == null || args == org.json.JSONObject.NULL) {
+                sceneType = ""
+            } else {
+                val jsonObj = when (args) {
+                    is org.json.JSONObject -> {
+                        // 再次检查是否是 JSONObject.NULL（它可能匹配 is JSONObject）
+                        if (args == org.json.JSONObject.NULL) null else args
                     }
+                    is String -> {
+                        if (args.isNotEmpty()) {
+                            org.json.JSONObject(args)
+                        } else {
+                            null
+                        }
+                    }
+                    else -> null
                 }
-                else -> null
+                // 安全获取 sceneType，处理 JSONObject.NULL 的情况
+                sceneType = if (jsonObj != null && !jsonObj.isNull("sceneType")) {
+                    jsonObj.optString("sceneType", "")
+                } else {
+                    ""
+                }
             }
-            sceneType = jsonObj?.optString("sceneType", "") ?: ""
         } catch (e: Exception) {
             handler.complete("""{"success": false, "error": "Invalid parameters: ${e.message}"}""")
             return
@@ -742,7 +714,105 @@ class DSBridgeInterface(private val context: Context) {
             handler.complete("""{"success": false, "error": "sceneType is empty"}""")
             return
         }
+        localUploadDeviceInfo(sceneType,handler)
+    }
 
+    /**
+     * 显示权限说明弹窗 (异步方法)
+     * H5调用: dsBridge.call("showPermissionDescDialog", null, function(result) {})
+     * 或带可选参数: dsBridge.call("showPermissionDescDialog", {"title": "自定义标题"}, function(result) {})
+     * 返回格式: { "success": true/false, "allGranted": true/false }
+     *
+     * 弹窗会显示以下权限说明：
+     * - 相机权限：用于拍摄照片完成身份验证
+     * - 地理位置权限：用于风控和服务定位
+     * - 短信权限：用于身份验证和风控
+     * - 应用列表权限：用于风控评估
+     *
+     * 点击确认按钮后自动请求权限，权限结果通过回调返回给H5
+     * 如果权限被拒绝会引导用户去设置界面开启权限
+     *
+     * 注意：此方法只获取权限结果，如需上传设备数据，请调用 uploadDeviceData 方法
+     */
+    @JavascriptInterface
+    fun showPermissionDescDialog(args: Any?, handler: CompletionHandler<String>) {
+        if (context !is android.app.Activity) {
+            handler.complete("""{"success": false, "allGranted": false, "error": "Context is not Activity"}""")
+            return
+        }
+
+        val activity = context as android.app.Activity
+
+        // 解析参数 - DSBridge可能传递String(JSON字符串)、JSONObject或JSONObject.NULL
+        var sceneType = ""
+        try {
+            // 先检查是否为 JSONObject.NULL 或 null
+            if (args == null || args == org.json.JSONObject.NULL) {
+                sceneType = ""
+            } else {
+                val jsonObj = when (args) {
+                    is org.json.JSONObject -> {
+                        // 再次检查是否是 JSONObject.NULL（它可能匹配 is JSONObject）
+                        if (args == org.json.JSONObject.NULL) null else args
+                    }
+                    is String -> {
+                        if (args.isNotEmpty()) {
+                            org.json.JSONObject(args)
+                        } else {
+                            null
+                        }
+                    }
+                    else -> null
+                }
+                // 安全获取 sceneType，处理 JSONObject.NULL 的情况
+                sceneType = if (jsonObj != null && !jsonObj.isNull("sceneType")) {
+                    jsonObj.optString("sceneType", "")
+                } else {
+                    ""
+                }
+            }
+        } catch (e: Exception) {
+            handler.complete("""{"success": false, "error": "Invalid parameters: ${e.message}"}""")
+            return
+        }
+
+        if (sceneType.isEmpty()) {
+            handler.complete("""{"success": false, "error": "sceneType is empty"}""")
+            return
+        }
+        // 使用PermissionHelper中统一管理的权限列表
+        val requiredPermissions = PermissionHelper.REQUIRED_PERMISSIONS
+
+        // 检查是否所有权限都已授予
+        val allGranted = requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (allGranted) {
+            localUploadDeviceInfo(sceneType,handler)
+        } else {
+            // 有未授予的权限，显示权限弹窗
+            PermissionDialogManager.showDialog(
+                activity,
+                onPermissionsGranted = {
+                    localUploadDeviceInfo(sceneType,handler)
+                },
+                onPermissionsDenied = {
+                    val resultJson = org.json.JSONObject().apply {
+                        put("success", true)
+                        put("recordNo", "")
+                        put("customerNo", "")
+                    }.toString()
+                    handler.complete(resultJson)
+                }
+            )
+        }
+    }
+
+    /**
+     * 发送设备信息的方法
+     */
+    fun localUploadDeviceInfo(sceneType: String, handler: CompletionHandler<String>){
         // 使用 lifecycleScope 启动协程
         val lifecycleOwner = context as? LifecycleOwner
         if (lifecycleOwner == null) {
@@ -798,12 +868,20 @@ class DSBridgeInterface(private val context: Context) {
 
         // 获取证件类型 (兼容String和JSONObject两种参数类型)
         val imageType = try {
-            val jsonObj = when (args) {
-                is org.json.JSONObject -> args
-                is String -> if (args.isNotEmpty()) org.json.JSONObject(args) else null
-                else -> null
+            // 先检查是否为 JSONObject.NULL 或 null
+            if (args == null || args == org.json.JSONObject.NULL) {
+                TakePhotoActivity.ID_FRONT
+            } else {
+                val jsonObj = when (args) {
+                    is org.json.JSONObject -> {
+                        // 再次检查是否是 JSONObject.NULL
+                        if (args == org.json.JSONObject.NULL) null else args
+                    }
+                    is String -> if (args.isNotEmpty()) org.json.JSONObject(args) else null
+                    else -> null
+                }
+                jsonObj?.optString(ImageRepository.ImageType.imageType, TakePhotoActivity.ID_FRONT) ?: TakePhotoActivity.ID_FRONT
             }
-            jsonObj?.optString(ImageRepository.ImageType.imageType, TakePhotoActivity.ID_FRONT) ?: TakePhotoActivity.ID_FRONT
         } catch (e: Exception) {
             TakePhotoActivity.ID_FRONT
         }

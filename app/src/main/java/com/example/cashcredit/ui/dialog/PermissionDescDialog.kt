@@ -33,7 +33,6 @@ class PermissionDescDialog(
     }
 
     private var btnConfirm: Button? = null
-    private var tvTitle: TextView? = null
 
     init {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -65,7 +64,6 @@ class PermissionDescDialog(
 
     private fun initViews() {
         btnConfirm = findViewById(R.id.btn_confirm)
-        tvTitle = findViewById(R.id.tv_title)
 
         btnConfirm?.setOnClickListener {
             requestAllPermissions()
@@ -200,13 +198,6 @@ class PermissionDescDialog(
             return true
         }
         return false
-    }
-
-    /**
-     * 设置标题
-     */
-    fun setTitle(title: String) {
-        tvTitle?.text = title
     }
 
     /**

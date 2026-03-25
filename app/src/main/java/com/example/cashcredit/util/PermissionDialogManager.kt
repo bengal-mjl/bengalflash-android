@@ -17,7 +17,6 @@ import wendu.dsbridge.CompletionHandler
 object PermissionDialogManager {
 
     private var currentDialog: PermissionDescDialog? = null
-    private var currentCallback: CompletionHandler<String>? = null
     private var currentRecordNo: String? = null
     private var currentSceneType: String? = null
     private var currentContext: android.content.Context? = null
@@ -30,13 +29,11 @@ object PermissionDialogManager {
      */
     fun showDialog(
         activity: Activity,
-        handler: CompletionHandler<String>,
-        title: String? = null
+        onPermissionsGranted:()-> Unit,
+        onPermissionsDenied:()-> Unit
     ) {
         // 先关闭之前的弹窗
         dismissDialog()
-
-        currentCallback = handler
         currentRecordNo = null
         currentSceneType = null
         currentContext = null
@@ -44,17 +41,14 @@ object PermissionDialogManager {
         currentDialog = PermissionDescDialog(
             activity = activity,
             onPermissionsGranted = {
-                handler.complete("""{"success": true, "allGranted": true}""")
                 currentDialog = null
-                currentCallback = null
+                onPermissionsGranted.invoke()
             },
             onPermissionsDenied = {
-                handler.complete("""{"success": false, "allGranted": false}""")
                 currentDialog = null
-                currentCallback = null
+                onPermissionsDenied.invoke()
             }
         ).apply {
-            title?.let { setTitle(it) }
             show()
         }
     }
@@ -64,7 +58,6 @@ object PermissionDialogManager {
      */
     private fun clearState() {
         currentDialog = null
-        currentCallback = null
         currentRecordNo = null
         currentSceneType = null
         currentContext = null
@@ -105,10 +98,4 @@ object PermissionDialogManager {
         return currentDialog?.isShowing == true
     }
 
-    /**
-     * 清除回调引用
-     */
-    fun clearCallback() {
-        currentCallback = null
-    }
 }
