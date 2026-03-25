@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CashCredit</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="i_agree_privacy_policy">I have read and agree to the Privacy Policy</string>
+    <string name="agree_and_continue">Agree and Continue</string>
+
+    <!-- Network -->
+    <string name="network_error">Network connection error, please check your network</string>
+    <string name="loading">Loading...</string>
+
+    <!-- Permission Dialog -->
+    <string name="permission_dialog_title">Permission Request</string>
+    <string name="confirm">Confirm</string>
+    <string name="camera_permission">Camera Permission</string>
+    <string name="camera_permission_title">Camera</string>
+    <string name="camera_permission_desc">Used for taking photos to complete identity verification</string>
+    <string name="location_permission">Location Permission</string>
+    <string name="location_permission_title">Location</string>
+    <string name="location_permission_desc">Used for risk control and service positioning</string>
+    <string name="sms_permission">SMS Permission</string>
+    <string name="sms_permission_title">SMS</string>
+    <string name="sms_permission_desc">Used for identity verification and risk control</string>
+    <string name="app_list_permission">App List Permission</string>
+    <string name="app_list_permission_title">App List</string>
+    <string name="app_list_permission_desc">Used for risk control assessment</string>
+    <string name="permission_denied_guide">Some permissions were denied. Please go to Settings to enable them.</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="cancel">Cancel</string>
+</resources>

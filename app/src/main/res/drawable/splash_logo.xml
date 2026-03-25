@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 背景 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0h108v108h-108z"/>
+    <!-- Logo图形 - 简单的C形图标 -->
+    <path
+        android:fillColor="#6200EE"
+        android:pathData="M54,18C34.1,18 18,34.1 18,54s16.1,36 36,36c16.6,0 30.5,-11.2 34.8,-26.5l-14,-4c-2.6,9.5 -11.2,16.5 -20.8,16.5c-11.9,0 -21.5,-9.6 -21.5,-21.5s9.6,-21.5 21.5,-21.5c9.6,0 18.2,7 20.8,16.5l14,-4C84.5,29.2 70.6,18 54,18z"/>
+</vector>

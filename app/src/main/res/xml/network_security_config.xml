@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许HTTPS请求 -->
+    <base-config cleartextTrafficPermitted="true">
+<!--        <trust-anchors>-->
+<!--            <certificates src="system"/>-->
+<!--        </trust-anchors>-->
+    </base-config>
+
+    <!-- 测试环境：允许内网IP使用HTTP -->
+<!--    <domain-config cleartextTrafficPermitted="true">-->
+<!--        <domain includeSubdomains="true">192.168.2.111</domain>-->
+<!--        <domain includeSubdomains="true">10.0.0.0</domain>-->
+<!--        <domain includeSubdomains="true">localhost</domain>-->
+<!--        <domain includeSubdomains="true">127.0.0.1</domain>-->
+<!--    </domain-config>-->
+</network-security-config>

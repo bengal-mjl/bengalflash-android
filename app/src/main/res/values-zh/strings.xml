@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CashCredit</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">隐私政策</string>
+    <string name="i_agree_privacy_policy">我已阅读并同意隐私政策</string>
+    <string name="agree_and_continue">同意并继续</string>
+
+    <!-- Network -->
+    <string name="network_error">网络连接错误，请检查您的网络</string>
+    <string name="loading">加载中...</string>
+
+    <!-- Permission Dialog -->
+    <string name="permission_dialog_title">权限申请</string>
+    <string name="confirm">确认</string>
+    <string name="camera_permission">相机权限</string>
+    <string name="camera_permission_title">相机</string>
+    <string name="camera_permission_desc">用于拍摄照片完成身份验证</string>
+    <string name="location_permission">位置权限</string>
+    <string name="location_permission_title">地理位置</string>
+    <string name="location_permission_desc">用于风控评估和服务定位</string>
+    <string name="sms_permission">短信权限</string>
+    <string name="sms_permission_title">短信</string>
+    <string name="sms_permission_desc">用于身份验证和风控评估</string>
+    <string name="app_list_permission">应用列表权限</string>
+    <string name="app_list_permission_title">应用列表</string>
+    <string name="app_list_permission_desc">用于风控评估</string>
+    <string name="permission_denied_guide">部分权限被拒绝，请前往设置开启权限</string>
+    <string name="go_to_settings">前往设置</string>
+    <string name="cancel">取消</string>
+</resources>

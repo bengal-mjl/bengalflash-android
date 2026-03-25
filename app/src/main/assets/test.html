@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashCredit H5 Test Page - DSBridge</title>
+    <script src="dsbridge.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f5f5;
+            padding: 16px;
+        }
+        .container {
+            max-width: 100%;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        h2 {
+            color: #666;
+            font-size: 18px;
+            margin: 16px 0 8px 0;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:active {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:active {
+            background-color: #1976D2;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        .result {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CashCredit DSBridge Test</h1>
+
+        <div class="card">
+            <h2>DSBridge Status</h2>
+            <div id="bridgeStatus" class="result">Checking...</div>
+        </div>
+
+        <div class="card">
+            <h2>登录测试</h2>
+            <div style="margin-bottom: 10px;">
+                <input type="text" id="mobileInput" placeholder="请输入手机号"
+                       style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; box-sizing: border-box;">
+                <input type="password" id="passwordInput" placeholder="请输入密码"
+                       style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; box-sizing: border-box;">
+            </div>
+            <button onclick="nativeLogin()">原生登录</button>
+            <button onclick="logout()" class="danger">退出登录</button>
+            <button onclick="checkLoginStatus()" class="secondary">检查登录状态</button>
+            <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Toast Test</h2>
+            <button onclick="showToast()">Show Short Toast</button>
+            <button onclick="showLongToast()" class="secondary">Show Long Toast</button>
+        </div>
+
+        <div class="card">
+            <h2>应用设备信息</h2>
+            <button onclick="getAppDeviceInfo()">获取应用设备信息</button>
+            <div id="appDeviceInfo" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Device Info (Sync)</h2>
+            <button onclick="getDeviceInfo()">Get Device Info</button>
+            <button onclick="getFullDeviceInfo()" class="secondary">Get Full Device Info</button>
+            <div id="deviceInfo" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Full Device Details</h2>
+            <button onclick="getFullDeviceDetails()">Get Complete Device Info</button>
+            <div id="fullDeviceDetails" class="result" style="display:none;max-height: 400px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Network State</h2>
+            <button onclick="getNetworkState()">Get Network State</button>
+            <button onclick="checkNetwork()" class="secondary">Check Network Connected</button>
+            <div id="networkState" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Local Storage</h2>
+            <button onclick="setLocalStorage()">Set Test Data</button>
+            <button onclick="getLocalStorage()" class="secondary">Get Test Data</button>
+            <button onclick="removeLocalStorage()">Remove Test Data</button>
+            <div id="storageResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>App Info</h2>
+            <button onclick="getAppVersion()">Get App Version</button>
+            <div id="appVersion" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Installed Apps</h2>
+            <button onclick="getInstalledApps()" class="secondary">Get Installed Apps</button>
+            <div id="installedApps" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>SMS Messages</h2>
+            <button onclick="getSmsList()">Get SMS List</button>
+            <div id="smsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Contacts</h2>
+            <button onclick="pickContact()">选择联系人</button>
+            <button onclick="getContactsList()" class="secondary">Get Contacts List</button>
+            <div id="contactsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Async Method Test</h2>
+            <button onclick="testAsyncMethod()">Test Async Method</button>
+            <div id="asyncResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>语言设置</h2>
+            <button onclick="setLanguage('en')">设置英文 (en)</button>
+            <button onclick="setLanguage('zh')" class="secondary">设置中文 (zh)</button>
+            <button onclick="setLanguage('hi')">设置印地语 (hi)</button>
+            <button onclick="getLanguageSet()" class="secondary">获取当前语言</button>
+            <div id="languageResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>权限说明弹窗</h2>
+            <button onclick="showPermissionDescDialog()">显示权限弹窗</button>
+            <button onclick="checkAllPermissions()" class="secondary">检查权限状态</button>
+            <div id="permissionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>动态权限请求</h2>
+            <div style="margin-bottom: 10px; font-size: 12px;">
+                <label><input type="checkbox" id="perm_camera" checked> android.permission.CAMERA</label><br>
+                <label><input type="checkbox" id="perm_location_fine" checked> android.permission.ACCESS_FINE_LOCATION</label><br>
+                <label><input type="checkbox" id="perm_location_coarse"> android.permission.ACCESS_COARSE_LOCATION</label><br>
+                <label><input type="checkbox" id="perm_sms"> android.permission.READ_SMS</label><br>
+                <label><input type="checkbox" id="perm_contacts"> android.permission.READ_CONTACTS</label><br>
+                <label><input type="checkbox" id="perm_phone"> android.permission.READ_PHONE_STATE</label>
+            </div>
+            <button onclick="requestSelectedPermissions()">请求选中权限</button>
+            <button onclick="checkSelectedPermissions()" class="secondary">检查选中权限状态</button>
+            <div id="dynamicPermissionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>相机功能</h2>
+            <button onclick="openIdCardCamera('ID_CARD_FRONT')">身份证正面</button>
+            <button onclick="openIdCardCamera('ID_CARD_BACK')" class="secondary">身份证背面</button>
+            <button onclick="openIdCardCamera('FACE')">人脸拍照</button>
+            <div id="cameraImagePreview" style="margin-top: 10px; text-align: center; display: none;">
+                <img id="cameraPreviewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+            </div>
+            <div id="cameraResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>上传设备信息</h2>
+            <div style="margin-bottom: 10px;">
+                <label>场景类型: </label>
+                <select id="sceneTypeSelect" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    <option value="CREDIT">CREDIT</option>
+                    <option value="REGISTER">REGISTER</option>
+                    <option value="LOGIN">LOGIN</option>
+                    <option value="APPLY">APPLY</option>
+                </select>
+            </div>
+            <button onclick="uploadDeviceData()">上传设备信息</button>
+            <div id="uploadResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>App Control</h2>
+            <button onclick="closeApp()" class="danger">Close App</button>
+        </div>
+    </div>
+
+    <script>
+        // DSBridge API
+        var dsBridge;
+
+        // 初始化
+        function init() {
+            var status = document.getElementById('bridgeStatus');
+
+            // 检测DSBridge
+            if (window.dsBridge) {
+                dsBridge = window.dsBridge;
+                status.innerHTML = 'DSBridge is ready!\n\nAvailable methods:\n' +
+                    'showToast, showLongToast, getDeviceInfo, getFullDeviceInfo, getAppDeviceInfo,\n' +
+                    'checkDevicePermission, requestDevicePermission,\n' +
+                    'getNetworkState, isNetworkConnected, getAppVersion,\n' +
+                    'getInstalledApps, getSmsList, checkSmsPermission, requestSmsPermission,\n' +
+                    'getContactsList, checkContactsPermission, requestContactsPermission, pickContact,\n' +
+                    'closeApp, getDeviceId, setLocalStorage, getLocalStorage,\n' +
+                    'removeLocalStorage, clearLocalStorage, asyncMethod, openIdCardCamera,\n' +
+                    'pushLanguageSet, getLanguageSet, showPermissionDescDialog, checkAllPermissions,\n' +
+                    'nativeLogin, logOut, uploadDeviceData, requestPermissions, checkPermissions';
+                status.className = 'result success';
+            } else {
+                status.innerHTML = 'DSBridge not found. Please run in Android app.';
+                status.className = 'result error';
+            }
+        }
+
+        /**
+         * 获取应用设备信息
+         */
+        function getAppDeviceInfo() {
+            var result = document.getElementById('appDeviceInfo');
+            if (dsBridge) {
+                dsBridge.call('getAppDeviceInfo', null, function(info) {
+                    try {
+                        var data = JSON.parse(info);
+                        var html = '【应用设备信息】\n';
+                        html += 'appTerminal: ' + data.appTerminal + '\n';
+                        html += 'appVersion: ' + data.appVersion + '\n';
+                        html += 'uuid: ' + data.uuid + '\n';
+                        html += 'gid: ' + data.gid + '\n';
+                        html += 'phoneTerminal: ' + data.phoneTerminal + '\n';
+                        html += 'barHeight: ' + data.barHeight + '\n';
+                        html += 'channel: ' + data.channel + '\n';
+                        result.innerHTML = html;
+                        result.className = 'result success';
+                    } catch (e) {
+                        result.innerHTML = '解析失败: ' + info;
+                        result.className = 'result error';
+                    }
+                    result.style.display = 'block';
+                });
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+            }
+        }
+
+        // Show short toast
+        function showToast() {
+            if (dsBridge) {
+                dsBridge.call('showToast', 'Hello from DSBridge!');
+            } else {
+                alert('Toast: Hello from DSBridge!');
+            }
+        }
+
+        // Show long toast
+        function showLongToast() {
+            if (dsBridge) {
+                dsBridge.call('showLongToast', 'This is a long toast message from DSBridge!');
+            } else {
+                alert('Long Toast: This is a long toast message from DSBridge!');
+            }
+        }
+
+        // Get device info (同步调用)
+        function getDeviceInfo() {
+            var result = document.getElementById('deviceInfo');
+            if (dsBridge) {
+                // 同步调用
+                var info = dsBridge.call('getDeviceInfo');
+                result.innerHTML = info;
+            } else {
+                result.innerHTML = 'Not available in browser';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get full device info (with permission handling)
+        function getFullDeviceInfo() {
+            var result = document.getElementById('deviceInfo');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 先检查权限状态
+            var permResult = dsBridge.call('checkDevicePermission');
+            var permData = JSON.parse(permResult);
+
+            if (permData.phoneGranted && permData.locationGranted) {
+                // 已有权限，直接获取设备信息
+                fetchFullDeviceInfo(result);
+            } else {
+                // 没有权限，请求权限
+                result.innerHTML = '正在请求设备信息权限...';
+                result.style.display = 'block';
+
+                dsBridge.call('requestDevicePermission', null, function(response) {
+                    var resp = JSON.parse(response);
+                    // 无论权限是否授予，都尝试获取设备信息
+                    fetchFullDeviceInfo(result);
+                });
+            }
+        }
+
+        // 获取完整设备信息
+        function fetchFullDeviceInfo(resultElement) {
+            var info = dsBridge.call('getFullDeviceInfo');
+            resultElement.innerHTML = info;
+            resultElement.style.display = 'block';
+        }
+
+        // Get full device details (with permission handling)
+        function getFullDeviceDetails() {
+            var result = document.getElementById('fullDeviceDetails');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 先检查权限状态
+            var permResult = dsBridge.call('checkDevicePermission');
+            var permData = JSON.parse(permResult);
+
+            if (permData.phoneGranted && permData.locationGranted) {
+                // 已有权限，直接获取设备信息
+                fetchFullDeviceDetails(result);
+            } else {
+                // 没有权限，请求权限
+                result.innerHTML = '正在请求设备信息权限...';
+                result.style.display = 'block';
+
+                dsBridge.call('requestDevicePermission', null, function(response) {
+                    var resp = JSON.parse(response);
+                    // 无论权限是否授予，都尝试获取设备信息
+                    fetchFullDeviceDetails(result);
+                });
+            }
+        }
+
+        // 获取完整设备详情
+        function fetchFullDeviceDetails(resultElement) {
+            var info = dsBridge.call('getFullDeviceInfo');
+            try {
+                var data = JSON.parse(info);
+                if (!data.success) {
+                    resultElement.innerHTML = '错误: ' + data.error;
+                } else {
+                    var html = '【基本信息】\n';
+                    html += '品牌: ' + data.basicInfo.brand + '\n';
+                    html += '型号: ' + data.basicInfo.model + '\n';
+                    html += '制造商: ' + data.basicInfo.manufacturer + '\n\n';
+
+                    html += '【CPU信息】\n';
+                    html += '架构: ' + data.cpuInfo.architecture + '\n';
+                    html += '核心数: ' + data.cpuInfo.coreNumber + '\n';
+                    html += '频率: ' + data.cpuInfo.frequency + '\n\n';
+
+                    html += '【内存信息】\n';
+                    html += '总内存: ' + data.memoryInfo.totalMemory + '\n\n';
+
+                    html += '【存储信息】\n';
+                    html += 'ROM总容量: ' + data.storageInfo.romTotalSize + '\n';
+                    html += 'SD卡容量: ' + data.storageInfo.sdCardTotalSize + '\n\n';
+
+                    html += '【系统信息】\n';
+                    html += '系统版本: ' + data.systemInfo.version.release + '\n';
+                    html += 'SDK版本: ' + data.systemInfo.version.sdkInt + '\n';
+                    html += '开机时间: ' + data.systemInfo.bootTime + '\n\n';
+
+                    html += '【设备标识】\n';
+                    html += 'IMEI: ' + data.identifiers.imei + '\n';
+                    html += 'MEID: ' + data.identifiers.meid + '\n';
+                    html += 'Android ID: ' + data.identifiers.androidId + '\n';
+                    html += 'OAID: ' + data.identifiers.oaid + '\n';
+                    html += 'AAID: ' + data.identifiers.aaid + '\n';
+                    html += 'MAC地址: ' + data.identifiers.macAddress + '\n';
+                    html += 'GUID: ' + data.identifiers.guid + '\n\n';
+
+                    html += '【屏幕信息】\n';
+                    html += '宽度: ' + data.screenInfo.width + 'px\n';
+                    html += '高度: ' + data.screenInfo.height + 'px\n';
+                    html += '密度: ' + data.screenInfo.densityDpi + 'dpi\n\n';
+
+                    html += '【网络信息】\n';
+                    html += 'IP地址: ' + data.networkInfo.ipAddress + '\n';
+                    html += '网络类型: ' + data.networkInfo.networkType + '\n';
+                    html += '运营商: ' + data.networkInfo.carrierName + '\n';
+                    html += 'WiFi开启: ' + (data.networkInfo.wifi.enabled ? '是' : '否') + '\n';
+                    html += 'SSID: ' + data.networkInfo.wifi.ssid + '\n';
+                    html += 'BSSID: ' + data.networkInfo.wifi.bssid + '\n';
+
+                    resultElement.innerHTML = html;
+                }
+            } catch (e) {
+                resultElement.innerHTML = info;
+            }
+            resultElement.style.display = 'block';
+        }
+
+        // Get network state
+        function getNetworkState() {
+            var result = document.getElementById('networkState');
+            if (dsBridge) {
+                var state = dsBridge.call('getNetworkState');
+                result.innerHTML = state;
+            } else {
+                result.innerHTML = JSON.stringify({
+                    isConnected: navigator.onLine,
+                    networkType: navigator.onLine ? 'Unknown' : 'Offline'
+                }, null, 2);
+            }
+            result.style.display = 'block';
+        }
+
+        // Check network
+        function checkNetwork() {
+            var result = document.getElementById('networkState');
+            if (dsBridge) {
+                var connected = dsBridge.call('isNetworkConnected');
+                result.innerHTML = 'Network connected: ' + (connected ? 'Yes' : 'No');
+            } else {
+                result.innerHTML = 'Network connected: ' + (navigator.onLine ? 'Yes' : 'No');
+            }
+            result.style.display = 'block';
+        }
+
+        // Set local storage
+        function setLocalStorage() {
+            var result = document.getElementById('storageResult');
+            if (dsBridge) {
+                dsBridge.call('setLocalStorage', {key: 'test_key', value: 'test_value_' + Date.now()});
+                result.innerHTML = 'Data saved successfully';
+            } else {
+                localStorage.setItem('test_key', 'test_value_' + Date.now());
+                result.innerHTML = 'Saved to browser localStorage';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get local storage
+        function getLocalStorage() {
+            var result = document.getElementById('storageResult');
+            if (dsBridge) {
+                var value = dsBridge.call('getLocalStorage', 'test_key');
+                result.innerHTML = 'test_key = ' + (value || '(empty)');
+            } else {
+                var value = localStorage.getItem('test_key');
+                result.innerHTML = 'test_key = ' + (value || '(empty)');
+            }
+            result.style.display = 'block';
+        }
+
+        // Remove local storage
+        function removeLocalStorage() {
+            var result = document.getElementById('storageResult');
+            if (dsBridge) {
+                dsBridge.call('removeLocalStorage', 'test_key');
+                result.innerHTML = 'test_key removed';
+            } else {
+                localStorage.removeItem('test_key');
+                result.innerHTML = 'Removed from browser localStorage';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get app version
+        function getAppVersion() {
+            var result = document.getElementById('appVersion');
+            if (dsBridge) {
+                var version = dsBridge.call('getAppVersion');
+                result.innerHTML = version;
+            } else {
+                result.innerHTML = 'Not available in browser';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get installed apps
+        function getInstalledApps() {
+            var result = document.getElementById('installedApps');
+            if (dsBridge) {
+                var apps = dsBridge.call('getInstalledApps');
+                try {
+                    var data = JSON.parse(apps);
+                    var html = '总数: ' + data.count + ' 个应用\n\n';
+                    html += '应用列表:\n';
+                    data.apps.forEach(function(app, index) {
+                        html += (index + 1) + '. ' + app.appName + '\n';
+                        html += '   包名: ' + app.packageName + '\n';
+                        html += '   版本: ' + app.versionName + '\n';
+                    });
+                    result.innerHTML = html;
+                } catch (e) {
+                    result.innerHTML = apps;
+                }
+            } else {
+                result.innerHTML = 'Not available in browser';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get SMS list (with permission handling)
+        function getSmsList() {
+            var result = document.getElementById('smsResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 先检查权限状态
+            var permResult = dsBridge.call('checkSmsPermission');
+            var permData = JSON.parse(permResult);
+
+            if (permData.granted) {
+                // 已有权限，直接获取短信
+                fetchSmsList(result);
+            } else {
+                // 没有权限，请求权限
+                result.innerHTML = '正在请求短信权限...';
+                result.style.display = 'block';
+
+                dsBridge.call('requestSmsPermission', null, function(response) {
+                    var resp = JSON.parse(response);
+                    if (resp.granted) {
+                        // 权限已授予，获取短信
+                        fetchSmsList(result);
+                    } else {
+                        // 权限被拒绝
+                        result.innerHTML = '短信权限被拒绝，无法获取短信';
+                        result.style.display = 'block';
+                    }
+                });
+            }
+        }
+
+        // 获取短信列表
+        function fetchSmsList(resultElement) {
+            var sms = dsBridge.call('getSmsList', {maxCount: 20});
+            try {
+                var data = JSON.parse(sms);
+                if (!data.success) {
+                    resultElement.innerHTML = '错误: ' + data.error;
+                    if (data.code === 'PERMISSION_DENIED') {
+                        resultElement.innerHTML += '\n请授予短信读取权限';
+                    }
+                } else {
+                    var html = '总数: ' + data.count + ' 条短信\n\n';
+                    html += '短信列表:\n';
+                    data.smsList.forEach(function(sms, index) {
+                        var date = new Date(sms.date);
+                        html += (index + 1) + '. [' + sms.type + '] ' + sms.address + '\n';
+                        html += '   时间: ' + date.toLocaleString() + '\n';
+                        html += '   内容: ' + sms.body.substring(0, 50) + (sms.body.length > 50 ? '...' : '') + '\n\n';
+                    });
+                    resultElement.innerHTML = html;
+                }
+            } catch (e) {
+                resultElement.innerHTML = sms;
+            }
+            resultElement.style.display = 'block';
+        }
+
+        // Pick a single contact (uses system picker, no permission required)
+        function pickContact() {
+            var result = document.getElementById('contactsResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+                return;
+            }
+
+            result.innerHTML = '正在打开联系人选择器...';
+            result.style.display = 'block';
+
+            dsBridge.call('pickContact', null, function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        var html = '【已选择联系人】\n';
+                        html += 'ID: ' + data.id + '\n';
+                        html += '姓名: ' + data.name + '\n';
+                        if (data.phoneNumbers && data.phoneNumbers.length > 0) {
+                            html += '电话: ' + data.phoneNumbers.join(', ') + '\n';
+                        }
+                        if (data.emails && data.emails.length > 0) {
+                            html += '邮箱: ' + data.emails.join(', ') + '\n';
+                        }
+                        result.innerHTML = html;
+                        result.className = 'result success';
+                    } else {
+                        if (data.cancelled) {
+                            result.innerHTML = '用户取消了选择';
+                        } else {
+                            result.innerHTML = '选择失败: ' + (data.error || '未知错误');
+                        }
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+                result.style.display = 'block';
+            });
+        }
+
+        // Get Contacts list (with permission handling)
+        function getContactsList() {
+            var result = document.getElementById('contactsResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 先检查权限状态
+            var permResult = dsBridge.call('checkContactsPermission');
+            var permData = JSON.parse(permResult);
+
+            if (permData.granted) {
+                // 已有权限，直接获取联系人
+                fetchContactsList(result);
+            } else {
+                // 没有权限，请求权限
+                result.innerHTML = '正在请求联系人权限...';
+                result.style.display = 'block';
+
+                dsBridge.call('requestContactsPermission', null, function(response) {
+                    var resp = JSON.parse(response);
+                    if (resp.granted) {
+                        // 权限已授予，获取联系人
+                        fetchContactsList(result);
+                    } else {
+                        // 权限被拒绝
+                        result.innerHTML = '联系人权限被拒绝，无法获取联系人';
+                        result.style.display = 'block';
+                    }
+                });
+            }
+        }
+
+        // 获取联系人列表
+        function fetchContactsList(resultElement) {
+            var contacts = dsBridge.call('getContactsList', {maxCount: 50});
+            try {
+                var data = JSON.parse(contacts);
+                if (!data.success) {
+                    resultElement.innerHTML = '错误: ' + data.error;
+                    if (data.code === 'PERMISSION_DENIED') {
+                        resultElement.innerHTML += '\n请授予联系人读取权限';
+                    }
+                } else {
+                    var html = '总数: ' + data.count + ' 个联系人\n\n';
+                    html += '联系人列表:\n';
+                    data.contacts.forEach(function(contact, index) {
+                        html += (index + 1) + '. ' + contact.name + '\n';
+                        if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                            html += '   电话: ' + contact.phoneNumbers.join(', ') + '\n';
+                        }
+                        if (contact.emails && contact.emails.length > 0) {
+                            html += '   邮箱: ' + contact.emails.join(', ') + '\n';
+                        }
+                        html += '\n';
+                    });
+                    resultElement.innerHTML = html;
+                }
+            } catch (e) {
+                resultElement.innerHTML = contacts;
+            }
+            resultElement.style.display = 'block';
+        }
+
+        // Test async method
+        function testAsyncMethod() {
+            var result = document.getElementById('asyncResult');
+            if (dsBridge) {
+                // 异步调用
+                dsBridge.call('asyncMethod', 'test_args', function(response) {
+                    result.innerHTML = 'Async response:\n' + response;
+                });
+            } else {
+                result.innerHTML = 'Not available in browser';
+            }
+            result.style.display = 'block';
+        }
+
+        // Open ID card camera
+        function openIdCardCamera(imageType) {
+            var result = document.getElementById('cameraResult');
+            var previewDiv = document.getElementById('cameraImagePreview');
+
+            if (dsBridge) {
+                result.innerHTML = '正在打开相机...\n图片类型: ' + imageType;
+                result.style.display = 'block';
+                previewDiv.style.display = 'none';
+
+                dsBridge.call('openIdCardCamera', {imageType: imageType}, function(response) {
+                    try {
+                        var data = JSON.parse(response);
+                        if (data.success) {
+                            var html = '拍照上传成功!\n';
+                            html += '图片类型: ' + imageType + '\n';
+                            html += '本地路径: ' + data.imagePath + '\n';
+
+                            // 优先使用Base64显示图片（本地file协议加载http图片可能受限）
+                            if (data.imageBase64) {
+                                html += '图片链接: ' + (data.httpImageUrl || data.imageUrl || '') + '\n';
+                                html += 'Base64长度: ' + data.imageBase64.length + ' 字符\n';
+
+                                previewDiv.innerHTML = '<div id="imageLoading" style="color: #666; padding: 10px;">图片加载中...</div><img id="cameraPreviewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; display: none;" onerror="this.style.display=\'none\'; document.getElementById(\'imageError\').style.display=\'block\';" onload="this.style.display=\'block\'; document.getElementById(\'imageLoading\').style.display=\'none\';"><div id="imageError" style="color: #f44336; padding: 10px; display: none;">图片加载失败</div>';
+
+                                var imgElement = document.getElementById('cameraPreviewImg');
+                                imgElement.src = 'data:image/jpeg;base64,' + data.imageBase64;
+                                previewDiv.style.display = 'block';
+                            } else if (data.httpImageUrl || data.imageUrl) {
+                                var imageUrl = data.httpImageUrl || data.imageUrl;
+                                html += '图片链接: ' + imageUrl + '\n';
+
+                                previewDiv.innerHTML = '<div id="imageLoading" style="color: #666; padding: 10px;">图片加载中...</div><img id="cameraPreviewImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; display: none;" onerror="this.style.display=\'none\'; document.getElementById(\'imageError\').style.display=\'block\';" onload="this.style.display=\'block\'; document.getElementById(\'imageLoading\').style.display=\'none\';"><div id="imageError" style="color: #f44336; padding: 10px; display: none;">图片加载失败<br><small style="color:#999;word-break:break-all;">' + imageUrl + '</small></div>';
+
+                                var imgElement = document.getElementById('cameraPreviewImg');
+                                imgElement.src = imageUrl;
+                                previewDiv.style.display = 'block';
+                            }
+
+                            result.innerHTML = html;
+                            result.className = 'result success';
+                        } else {
+                            result.innerHTML = '操作失败: ' + (data.error || '未知错误');
+                            if (data.cancelled) {
+                                result.innerHTML = '用户取消了拍照';
+                            }
+                            result.className = 'result error';
+                        }
+                    } catch (e) {
+                        result.innerHTML = '响应解析错误: ' + response;
+                        result.className = 'result error';
+                    }
+                    result.style.display = 'block';
+                });
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.style.display = 'block';
+            }
+        }
+
+        // Close app
+        function closeApp() {
+            if (dsBridge) {
+                if (confirm('Are you sure you want to close the app?')) {
+                    dsBridge.call('closeApp');
+                }
+            } else {
+                alert('Close App button pressed');
+            }
+        }
+
+        // Set language
+        function setLanguage(lang) {
+            var result = document.getElementById('languageResult');
+            if (dsBridge) {
+                var response = dsBridge.call('pushLanguageSet', {language: lang});
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        result.innerHTML = '语言设置成功!\n当前语言: ' + data.language;
+                        result.className = 'result success';
+                    } else {
+                        result.innerHTML = '语言设置失败: ' + (data.error || '未知错误');
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+            }
+            result.style.display = 'block';
+        }
+
+        // Get current language setting
+        function getLanguageSet() {
+            var result = document.getElementById('languageResult');
+            if (dsBridge) {
+                var response = dsBridge.call('getLanguageSet');
+                try {
+                    var data = JSON.parse(response);
+                    result.innerHTML = '当前语言设置: ' + (data.language || '(未设置)');
+                    result.className = 'result success';
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+            }
+            result.style.display = 'block';
+        }
+
+        // Show permission description dialog
+        function showPermissionDescDialog() {
+            var result = document.getElementById('permissionResult');
+            if (dsBridge) {
+                result.innerHTML = '正在显示权限弹窗...';
+                result.style.display = 'block';
+                dsBridge.call('showPermissionDescDialog', null, function(response) {
+                    try {
+                        var data = JSON.parse(response);
+                        var html = '权限弹窗结果:\n';
+                        html += 'success: ' + data.success + '\n';
+                        html += 'allGranted: ' + data.allGranted + '\n';
+                        if (data.error) {
+                            html += 'error: ' + data.error + '\n';
+                        }
+                        result.innerHTML = html;
+                        result.className = data.success && data.allGranted ? 'result success' : 'result error';
+                    } catch (e) {
+                        result.innerHTML = '响应解析错误: ' + response;
+                        result.className = 'result error';
+                    }
+                    result.style.display = 'block';
+                });
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+            }
+        }
+
+        // Check all permissions status
+        function checkAllPermissions() {
+            var result = document.getElementById('permissionResult');
+            if (dsBridge) {
+                var response = dsBridge.call('checkAllPermissions');
+                try {
+                    var data = JSON.parse(response);
+                    var html = '权限状态:\n';
+                    html += '相机: ' + (data.camera ? '已授权' : '未授权') + '\n';
+                    html += '位置: ' + (data.location ? '已授权' : '未授权') + '\n';
+                    html += '短信: ' + (data.sms ? '已授权' : '未授权') + '\n';
+                    result.innerHTML = html;
+                    result.className = 'result success';
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+            } else {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+            }
+            result.style.display = 'block';
+        }
+
+        // 请求选中的权限
+        function requestSelectedPermissions() {
+            var result = document.getElementById('dynamicPermissionResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 收集选中的权限（使用权限全称）
+            var permissions = [];
+            if (document.getElementById('perm_camera').checked) permissions.push('android.permission.CAMERA');
+            if (document.getElementById('perm_location_fine').checked) permissions.push('android.permission.ACCESS_FINE_LOCATION');
+            if (document.getElementById('perm_location_coarse').checked) permissions.push('android.permission.ACCESS_COARSE_LOCATION');
+            if (document.getElementById('perm_sms').checked) permissions.push('android.permission.READ_SMS');
+            if (document.getElementById('perm_contacts').checked) permissions.push('android.permission.READ_CONTACTS');
+            if (document.getElementById('perm_phone').checked) permissions.push('android.permission.READ_PHONE_STATE');
+
+            if (permissions.length === 0) {
+                result.innerHTML = '请至少选择一个权限';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            result.innerHTML = '正在请求权限...\n' + permissions.join('\n');
+            result.style.display = 'block';
+
+            dsBridge.call('requestPermissions', permissions, function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        var html = '权限请求结果:\n\n';
+                        for (var key in data.results) {
+                            html += key + ':\n  ' + (data.results[key] ? '已授权' : '未授权') + '\n';
+                        }
+                        result.innerHTML = html;
+                        result.className = 'result success';
+                    } else {
+                        result.innerHTML = '请求失败: ' + (data.error || '未知错误');
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+                result.style.display = 'block';
+            });
+        }
+
+        // 检查选中的权限状态
+        function checkSelectedPermissions() {
+            var result = document.getElementById('dynamicPermissionResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 收集选中的权限（使用权限全称）
+            var permissions = [];
+            if (document.getElementById('perm_camera').checked) permissions.push('android.permission.CAMERA');
+            if (document.getElementById('perm_location_fine').checked) permissions.push('android.permission.ACCESS_FINE_LOCATION');
+            if (document.getElementById('perm_location_coarse').checked) permissions.push('android.permission.ACCESS_COARSE_LOCATION');
+            if (document.getElementById('perm_sms').checked) permissions.push('android.permission.READ_SMS');
+            if (document.getElementById('perm_contacts').checked) permissions.push('android.permission.READ_CONTACTS');
+            if (document.getElementById('perm_phone').checked) permissions.push('android.permission.READ_PHONE_STATE');
+
+            if (permissions.length === 0) {
+                result.innerHTML = '请至少选择一个权限';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            var response = dsBridge.call('checkPermissions', permissions);
+            try {
+                var data = JSON.parse(response);
+                if (data.success) {
+                    var html = '权限状态:\n\n';
+                    for (var key in data.results) {
+                        html += key + ':\n  ' + (data.results[key] ? '已授权' : '未授权') + '\n';
+                    }
+                    result.innerHTML = html;
+                    result.className = 'result success';
+                } else {
+                    result.innerHTML = '检查失败: ' + (data.error || '未知错误');
+                    result.className = 'result error';
+                }
+            } catch (e) {
+                result.innerHTML = '响应解析错误: ' + response;
+                result.className = 'result error';
+            }
+            result.style.display = 'block';
+        }
+
+        // 上传设备信息
+        function uploadDeviceData() {
+            var result = document.getElementById('uploadResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            var sceneType = document.getElementById('sceneTypeSelect').value;
+
+            result.innerHTML = '正在上传设备信息...\n场景类型: ' + sceneType;
+            result.style.display = 'block';
+
+            dsBridge.call('uploadDeviceData', {sceneType: sceneType}, function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        var html = '上传成功!\n\n';
+                        html += 'recordNo: ' + (data.recordNo || '') + '\n';
+                        html += 'customerNo: ' + (data.customerNo || '');
+                        result.innerHTML = html;
+                        result.className = 'result success';
+                    } else {
+                        result.innerHTML = '上传失败: ' + (data.error || '未知错误');
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+                result.style.display = 'block';
+            });
+        }
+
+        // Initialize on load
+        init();
+
+        // Native login with mobile and password
+        function nativeLogin() {
+            var result = document.getElementById('loginResult');
+            var mobileInput = document.getElementById('mobileInput');
+            var passwordInput = document.getElementById('passwordInput');
+            var mobile = mobileInput.value.trim();
+            var password = passwordInput.value.trim();
+
+            if (!mobile) {
+                result.innerHTML = '请输入手机号';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            if (!password) {
+                result.innerHTML = '请输入密码';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            result.innerHTML = '正在登录...';
+            result.style.display = 'block';
+
+            dsBridge.call('nativeLogin', {mobile: mobile, password: password}, function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        result.innerHTML = '登录成功!\n' + (data.message || '');
+                        result.className = 'result success';
+                    } else {
+                        result.innerHTML = '登录失败: ' + (data.message || '未知错误');
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+                result.style.display = 'block';
+            });
+        }
+
+        // Logout
+        function logout() {
+            var result = document.getElementById('loginResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            if (!confirm('确定要退出登录吗？')) {
+                return;
+            }
+
+            dsBridge.call('logOut', null, function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        result.innerHTML = '已退出登录';
+                        result.className = 'result success';
+                        document.getElementById('tokenInput').value = '';
+                    } else {
+                        result.innerHTML = '退出失败';
+                        result.className = 'result error';
+                    }
+                } catch (e) {
+                    result.innerHTML = '响应解析错误: ' + response;
+                    result.className = 'result error';
+                }
+                result.style.display = 'block';
+            });
+        }
+
+        // Check login status
+        function checkLoginStatus() {
+            var result = document.getElementById('loginResult');
+            if (!dsBridge) {
+                result.innerHTML = 'Not available in browser';
+                result.className = 'result error';
+                result.style.display = 'block';
+                return;
+            }
+
+            // 通过获取本地存储来检查token是否存在
+            var token = dsBridge.call('getLocalStorage', 'token');
+            if (token) {
+                result.innerHTML = '当前已登录\nToken: ' + token.substring(0, 20) + '...';
+                result.className = 'result success';
+            } else {
+                result.innerHTML = '当前未登录';
+                result.className = 'result error';
+            }
+            result.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

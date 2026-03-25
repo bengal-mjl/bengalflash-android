@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/twairt_ortho_agreement_bg"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:maxHeight="550dp">
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/btn_container"
+        app:layout_constraintTop_toTopOf="parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:textColor="#333333"
+                android:gravity="center"
+                android:id="@+id/app_name"
+                android:text="@string/app_name"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:textColor="#333333"
+                android:id="@+id/desc_app_name"
+                android:layout_marginTop="12dp"
+                android:text="During use, Twairt Ortho requires you to provide or allow us to collect this sensitive data, but it can only be used after your consent"
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_personal"
+                android:text="Personal information"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_personal"
+                android:text="Access: We only collect key data you actively provide during the loan application process, such as your name, ID number, contact information, and bank card information. Purpose: This information is primarily used for strict identity verification to confirm your authenticity and validity, and that you meet the basic loan application requirements. We will also conduct a comprehensive assessment based on your personal information to accurately match you with the most suitable loan plan. After the loan is disbursed, we will also use this information to provide you with timely and accurate repayment reminders. Safeguards: We use advanced encryption technology to store your personal information, ensuring multi-level security. Data will be encrypted and uploaded to our server: https://api.twairtortho.com/ "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_location"
+                android:layout_marginTop="12dp"
+                android:text="Location"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_location"
+                android:text="Access: This app will access your device&apos;s obfuscated location information, such as latitude and longitude, and GPS. Purpose: By obtaining your location, we can accurately determine your location and recommend loan products and services that comply with local policies and market conditions. Furthermore, location information helps us determine the authenticity and security of transactions during critical stages such as risk assessment and post-loan management. Safeguards: This app only accesses location information when you use specific location-related service features and will never use it for any unrelated purposes. Data will be encrypted and uploaded to the server: https://api.twairtortho.com/  "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_camera"
+                android:layout_marginTop="12dp"
+                android:text="Camera"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_camera"
+                android:text="Access: This app will access your device&apos;s camera. Purpose: Primarily used to take photos of important documents such as your ID card to help you quickly submit your loan application documents. In certain scenarios requiring enhanced security, camera permissions will also be used for facial recognition authentication, further strengthening account security and ensuring the authenticity of transactions. Protection Measures: Camera permissions will only be used when you initiate relevant operations. Photos taken are only used for the loan application process and are not at risk of being leaked or misused. Data will be encrypted and uploaded to the server: https://api.twairtortho.com/ "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_storage"
+                android:visibility="gone"
+                android:layout_marginTop="12dp"
+                android:text="Storage"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_storage"
+                android:visibility="gone"
+                android:text="The user&apos;s loan report can be downloaded and stored securely on the user&apos;s cellphone so that the user can upload the right documents for faster loan approval and disbursement. "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_calendar"
+                android:visibility="gone"
+                android:layout_marginTop="12dp"
+                android:text="Calendar"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_calendar"
+                android:visibility="gone"
+                android:text="To prevent fraud from occurring, we need to obtain permission to access telephone contacts with the aim of identifying that the applicant is a real user, and assessing the risk. The information is only used for credit assessment and the risk of loan products used by users. Without the permission of the user, it cannot be used for any other purpose. "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_applist"
+                android:layout_marginTop="12dp"
+                android:text="App List"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_applist"
+                android:text="Access: The app will access the list of apps installed on the user&apos;s device. Purpose: By analyzing the list of apps installed on the user&apos;s device, we can identify dangerous and jailbroken apps that could compromise the user&apos;s financial security. Protection Measures: We will anonymize the app list information and will never disclose the names of specific apps installed or other private information. Data will be encrypted and uploaded to our server: https://api.twairtortho.com/ "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_sms"
+                android:visibility="gone"
+                android:layout_marginTop="12dp"
+                android:text="SMS Permission"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_sms"
+                android:visibility="gone"
+                android:text="To ensure applicants are genuine and prevent loan fraud, TwairtOrtho needs to access some user SMS information. This information is primarily used to determine whether users are using real devices to conduct independent loan transactions and whether multiple loan transactions are made on the same device or phone number. If this occurs, it may be considered loan fraud.  At the same time, TwairtOrtho actively responds to Google&apos;s requirements for user personal privacy policy and only collects the following financial information:[Credit,fee,BDT,bKash,received,deposit,,atm,wallet ,টাকা,অভিনন্দন,টাকা সমন্বয়,ট্রানজ্যাকশন,সফল,Balance,Tk,cash,amount,TrxID,Debit,txnid,taka,uddokta,transaction,ref,account,money,loan,deducted,win,A/C,payment,fee,bill,purchase]This information will be used to evaluate the user&apos;s financial situation, and the credit model will grant the corresponding credit limit based on the user&apos;s financial activities. The collected information will be encrypted and uploaded to the server: https://api.twairtortho.com, and deleted regularly."
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_contact"
+                android:layout_marginTop="12dp"
+                android:text="Contact"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_contact"
+                android:text="Access: The app will access the emergency contact information provided by the user when applying for a loan. Purpose: In an emergency, if we are unable to contact you directly, we may attempt to communicate with you through the emergency contact information you have specified. Additionally, contact information can be used as a supplementary factor in certain credit assessment models to provide a more comprehensive assessment of your creditworthiness. Protection Measures: We encrypt and store contact information, use it only when necessary, and will not disclose it to third parties. Data will be encrypted and uploaded to our server: https://api.twairtortho.com/ "
+                style="@style/PermissionDesc"/>
+            <TextView
+                android:id="@+id/title_device"
+                android:layout_marginTop="12dp"
+                android:text="Device"
+                style="@style/PermissionTitle"/>
+            <TextView
+                android:id="@+id/desc_device"
+                android:text="Access: This app will access your device&apos;s IMEI, MAC address, device model, operating system version, and other information. Purpose: This information is primarily used for device identification to ensure the security of your account across different devices. It also helps us optimize the app&apos;s compatibility and performance across various devices, providing you with a better user experience. Protection Measures: We use secure and reliable technology to collect and store device information and strictly restrict access rights to effectively prevent unauthorized access and use. Data will be encrypted and uploaded to our server: https://api.twairtortho.com/ "
+                style="@style/PermissionDesc"/>
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/btn_container"
+        android:background="@color/white"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:paddingHorizontal="30dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <Button
+            android:id="@+id/btn_confirm"
+            android:textStyle="bold"
+            android:textColor="#ffffff"
+            android:background="@drawable/twairt_ortho_loan_btn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Access"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
