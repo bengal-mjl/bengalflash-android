@@ -19,12 +19,15 @@ import com.example.cashcredit.util.ContactPickerManager
 import com.example.cashcredit.util.ContactUtil
 import com.example.cashcredit.util.DeviceUploadManager
 import com.example.cashcredit.util.DeviceUtil
+import com.example.cashcredit.util.LivenessCallbackManager
 import com.example.cashcredit.util.NetworkUtil
 import com.example.cashcredit.util.PermissionDialogManager
 import com.example.cashcredit.util.PermissionHelper
 import com.example.cashcredit.util.SmsUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.izilab.liveness.api.Detector
+import com.izilab.liveness.api.LivenessDetectionSDK
 import kotlinx.coroutines.launch
 import wendu.dsbridge.CompletionHandler
 import wendu.dsbridge.DWebView
@@ -895,8 +898,18 @@ class DSBridgeInterface(private val context: Context) {
                     try {
                         val json = org.json.JSONObject(result ?: "{}")
                         if (json.optBoolean("granted", false)) {
-                            // 权限已授予，打开相机
-                            startCameraActivity(activity, imageType, pendingHandler)
+
+                            if (imageType == "FACE"){
+                                // 保存回调，等待活体检测结果
+                                LivenessCallbackManager.setCallback(pendingHandler)
+                                LivenessDetectionSDK.from(activity)
+                                    .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
+                                    .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
+                                    .start()
+                            }else{
+                                // 权限已授予，打开相机
+                                startCameraActivity(activity, imageType, pendingHandler)
+                            }
                         } else {
                             // 权限被拒绝
                             pendingHandler.complete("""{"success": false, "error": "Camera permission denied"}""")
@@ -915,8 +928,17 @@ class DSBridgeInterface(private val context: Context) {
                 }
             })
         } else {
-            // 已有权限，直接打开相机
-            startCameraActivity(activity, imageType, handler)
+            if (imageType == "FACE"){
+                // 保存回调，等待活体检测结果
+                LivenessCallbackManager.setCallback(handler)
+                LivenessDetectionSDK.from(activity)
+                    .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
+                    .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
+                    .start()
+            }else{
+                // 权限已授予，打开相机
+                startCameraActivity(activity, imageType, handler)
+            }
         }
     }
 

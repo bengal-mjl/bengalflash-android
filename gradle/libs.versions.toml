@@ -17,6 +17,7 @@ okhttp = "4.12.0"
 gson = "2.10.1"
 kotlinCoroutines = "1.7.3"
 camera = "1.3.1"
+liveness = "1.2.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +41,8 @@ camera-core = {group = "androidx.camera",name="camera-core",version.ref = "camer
 camera-camera2 = {group = "androidx.camera",name="camera-camera2",version.ref = "camera"}
 camera-lifecycle = {group = "androidx.camera",name="camera-lifecycle",version.ref = "camera"}
 camera-view = {group = "androidx.camera",name="camera-view",version.ref = "camera"}
+#liveness
+liveness-detection = {group = "com.izilab",name = "liveness-detection",version.ref = "liveness"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

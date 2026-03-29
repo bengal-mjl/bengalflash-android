@@ -7,6 +7,13 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
+        maven {
+            url = uri("https://packages.aliyun.com/6791f66d556e6cdab5370744/maven/repo-izi")
+            credentials {
+                username = "5ff82b1ca509123753953d60"
+                password = "HEz]qf3iHQ9i"
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -16,6 +23,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://packages.aliyun.com/6791f66d556e6cdab5370744/maven/repo-izi")
+            credentials {
+                username = "5ff82b1ca509123753953d60"
+                password = "HEz]qf3iHQ9i"
+            }
+        }
     }
 }
 
