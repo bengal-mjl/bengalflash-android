@@ -10,6 +10,8 @@ import android.provider.Settings
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import android.os.Handler
+import android.os.Looper
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -185,9 +187,13 @@ class PermissionDescDialog(
 
             if (allGranted) {
                 dismiss()
-                onPermissionsGranted?.invoke()
+                // 添加延迟，确保权限完全生效后再执行回调
+                Handler(Looper.getMainLooper()).postDelayed({
+                    onPermissionsGranted?.invoke()
+                }, 300)
             } else {
                 // 用户没有授予权限
+                dismiss()
                 Toast.makeText(
                     activity,
                     R.string.permission_denied_guide,
