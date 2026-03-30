@@ -859,7 +859,7 @@
             if (dsBridge) {
                 result.innerHTML = '正在显示权限弹窗...';
                 result.style.display = 'block';
-                dsBridge.call('showPermissionDescDialog', null, function(response) {
+                dsBridge.call('showPermissionDescDialog', {sceneType: 'LOAN'}, function(response) {
                     try {
                         var data = JSON.parse(response);
                         var html = '权限弹窗结果:\n';

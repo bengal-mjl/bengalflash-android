@@ -1,9 +1,14 @@
 package com.example.cashcredit.util
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import org.json.JSONObject
@@ -13,6 +18,7 @@ import wendu.dsbridge.CompletionHandler
  * 权限请求帮助类
  * 用于处理运行时权限请求
  */
+@SuppressLint("StaticFieldLeak")
 object PermissionHelper {
 
     /**
@@ -33,6 +39,7 @@ object PermissionHelper {
     private const val REQUEST_CODE_CONTACTS = 1003
     private const val REQUEST_CODE_CAMERA = 1004
     private const val REQUEST_CODE_DYNAMIC = 1005
+    private const val REQUEST_CODE_SETTINGS = 1006
 
     // 存储权限请求回调
     private var smsPermissionCallback: CompletionHandler<String>? = null
@@ -44,11 +51,15 @@ object PermissionHelper {
     // 存储动态权限请求的权限列表
     private var dynamicPermissions: List<String> = emptyList()
 
+    // 存储当前Activity，用于权限拒绝后引导去设置
+    private var currentActivity: Activity? = null
+
     /**
      * 请求短信权限
      */
     fun requestSmsPermission(activity: Activity, handler: CompletionHandler<String>) {
         smsPermissionCallback = handler
+        currentActivity = activity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(
@@ -67,6 +78,7 @@ object PermissionHelper {
      */
     fun requestDevicePermission(activity: Activity, handler: CompletionHandler<String>) {
         devicePermissionCallback = handler
+        currentActivity = activity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val permissions = mutableListOf<String>()
@@ -104,6 +116,7 @@ object PermissionHelper {
      */
     fun requestContactsPermission(activity: Activity, handler: CompletionHandler<String>) {
         contactsPermissionCallback = handler
+        currentActivity = activity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS)
@@ -128,6 +141,7 @@ object PermissionHelper {
      */
     fun requestCameraPermission(activity: Activity, handler: CompletionHandler<String>) {
         cameraPermissionCallback = handler
+        currentActivity = activity
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
@@ -162,6 +176,7 @@ object PermissionHelper {
     ) {
         dynamicPermissionCallback = handler
         dynamicPermissions = permissions
+        currentActivity = activity
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             // Android 6.0 以下自动授权
@@ -221,7 +236,19 @@ object PermissionHelper {
             REQUEST_CODE_SMS -> {
                 val granted = grantResults.isNotEmpty() &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED
-                smsPermissionCallback?.complete("""{"granted": $granted}""")
+                if (!granted && shouldShowPermissionRationale(permissions)) {
+                    // 用户拒绝了权限但没有选择"不再询问"，可以再次请求
+                    smsPermissionCallback?.complete("""{"granted": false}""")
+                } else if (!granted) {
+                    // 用户拒绝了权限并选择了"不再询问"，引导去设置
+                    showPermissionGuideDialog(
+                        activity = currentActivity,
+                        permissionName = "短信",
+                        handler = smsPermissionCallback
+                    )
+                } else {
+                    smsPermissionCallback?.complete("""{"granted": true}""")
+                }
                 smsPermissionCallback = null
             }
             REQUEST_CODE_DEVICE -> {
@@ -245,13 +272,29 @@ object PermissionHelper {
             REQUEST_CODE_CONTACTS -> {
                 val granted = grantResults.isNotEmpty() &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED
-                contactsPermissionCallback?.complete("""{"granted": $granted}""")
+                if (granted) {
+                    contactsPermissionCallback?.complete("""{"granted": true}""")
+                } else if (shouldShowPermissionRationale(permissions)) {
+                    // 用户拒绝了权限但没有选择"不再询问"，返回结果让调用方处理
+                    contactsPermissionCallback?.complete("""{"granted": false, "shouldAskAgain": true}""")
+                } else {
+                    // 用户拒绝了权限并选择了"不再询问"，返回结果让调用方弹出引导对话框
+                    contactsPermissionCallback?.complete("""{"granted": false, "shouldAskAgain": false}""")
+                }
                 contactsPermissionCallback = null
             }
             REQUEST_CODE_CAMERA -> {
                 val granted = grantResults.isNotEmpty() &&
                         grantResults[0] == PackageManager.PERMISSION_GRANTED
-                cameraPermissionCallback?.complete("""{"granted": $granted}""")
+                if (granted) {
+                    cameraPermissionCallback?.complete("""{"granted": true}""")
+                } else if (shouldShowPermissionRationale(permissions)) {
+                    // 用户拒绝了权限但没有选择"不再询问"，返回结果让调用方处理
+                    cameraPermissionCallback?.complete("""{"granted": false, "shouldAskAgain": true}""")
+                } else {
+                    // 用户拒绝了权限并选择了"不再询问"，返回结果让调用方弹出引导对话框
+                    cameraPermissionCallback?.complete("""{"granted": false, "shouldAskAgain": false}""")
+                }
                 cameraPermissionCallback = null
             }
             REQUEST_CODE_DYNAMIC -> {
@@ -275,5 +318,67 @@ object PermissionHelper {
                 dynamicPermissions = emptyList()
             }
         }
+    }
+
+    /**
+     * 检查是否应该显示权限请求说明
+     * 如果返回false且权限未授予，说明用户选择了"不再询问"
+     */
+    private fun shouldShowPermissionRationale(permissions: Array<out String>): Boolean {
+        val activity = currentActivity ?: return false
+        return permissions.any { permission ->
+            ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+        }
+    }
+
+    /**
+     * 显示权限引导对话框，引导用户去设置界面开启权限
+     */
+    fun showPermissionGuideDialog(
+        activity: Activity?,
+        permissionName: String,
+        handler: CompletionHandler<String>?
+    ) {
+        if (activity == null) {
+            handler?.complete("""{"granted": false, "error": "Activity is null"}""")
+            return
+        }
+
+        AlertDialog.Builder(activity)
+            .setTitle("权限申请")
+            .setMessage("${permissionName}权限已被拒绝，请在设置中手动开启权限")
+            .setPositiveButton("去设置") { dialog, _ ->
+                dialog.dismiss()
+                openPermissionSettings(activity)
+                handler?.complete("""{"granted": false, "needManualGrant": true}""")
+            }
+            .setNegativeButton("取消") { dialog, _ ->
+                dialog.dismiss()
+                handler?.complete("""{"granted": false}""")
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    /**
+     * 打开应用权限设置界面
+     */
+    fun openPermissionSettings(activity: Activity) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", activity.packageName, null)
+        intent.data = uri
+        activity.startActivityForResult(intent, REQUEST_CODE_SETTINGS)
+    }
+
+    /**
+     * 处理从设置界面返回的结果
+     * 在Activity的onActivityResult中调用
+     */
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode == REQUEST_CODE_SETTINGS) {
+            // 用户从设置界面返回
+            return true
+        }
+        return false
     }
 }

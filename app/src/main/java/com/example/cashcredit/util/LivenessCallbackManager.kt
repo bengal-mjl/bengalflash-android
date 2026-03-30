@@ -67,8 +67,7 @@ object LivenessCallbackManager {
      */
     fun notifySuccessWithUrl(
         imageUrl: String?,
-        httpImageUrl: String?,
-        livenessScore: Float? = null
+        httpImageUrl: String?
     ) {
         val callback = livenessCallback ?: return
 
@@ -82,9 +81,6 @@ object LivenessCallbackManager {
                 }
                 if (!httpImageUrl.isNullOrEmpty()) {
                     append(", \"httpImageUrl\": \"$httpImageUrl\"")
-                }
-                if (livenessScore != null) {
-                    append(", \"livenessScore\": $livenessScore")
                 }
                 append("}")
             }

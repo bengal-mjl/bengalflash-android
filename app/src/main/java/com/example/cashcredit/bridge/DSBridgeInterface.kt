@@ -891,55 +891,110 @@ class DSBridgeInterface(private val context: Context) {
 
         // 检查相机权限
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // 保存回调，请求权限后再打开相机
-            val pendingHandler = handler
-            PermissionHelper.requestCameraPermission(activity, object : CompletionHandler<String> {
-                override fun complete(result: String?) {
-                    try {
-                        val json = org.json.JSONObject(result ?: "{}")
-                        if (json.optBoolean("granted", false)) {
-
-                            if (imageType == "FACE"){
-                                // 保存回调，等待活体检测结果
-                                LivenessCallbackManager.setCallback(pendingHandler)
-                                LivenessDetectionSDK.from(activity)
-                                    .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
-                                    .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
-                                    .start()
-                            }else{
-                                // 权限已授予，打开相机
-                                startCameraActivity(activity, imageType, pendingHandler)
-                            }
-                        } else {
-                            // 权限被拒绝
-                            pendingHandler.complete("""{"success": false, "error": "Camera permission denied"}""")
-                        }
-                    } catch (e: Exception) {
-                        pendingHandler.complete("""{"success": false, "error": "Permission result parse error"}""")
-                    }
-                }
-
-                override fun complete() {
-
-                }
-
-                override fun setProgressData(value: String?) {
-
-                }
-            })
+            // 请求相机权限，包含完整的拒绝处理流程
+            requestCameraPermissionWithGuide(activity, imageType, handler)
         } else {
-            if (imageType == "FACE"){
+            // 已有权限，直接执行
+            if (imageType == "FACE") {
                 // 保存回调，等待活体检测结果
                 LivenessCallbackManager.setCallback(handler)
                 LivenessDetectionSDK.from(activity)
                     .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
                     .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
                     .start()
-            }else{
+            } else {
                 // 权限已授予，打开相机
                 startCameraActivity(activity, imageType, handler)
             }
         }
+    }
+
+    /**
+     * 请求相机权限，包含引导对话框流程
+     * 第一次拒绝：再次请求
+     * 永久拒绝：弹出引导对话框
+     */
+    private fun requestCameraPermissionWithGuide(
+        activity: android.app.Activity,
+        imageType: String,
+        handler: CompletionHandler<String>
+    ) {
+        PermissionHelper.requestCameraPermission(activity, object : CompletionHandler<String> {
+            override fun complete(result: String?) {
+                try {
+                    val json = org.json.JSONObject(result ?: "{}")
+                    if (json.optBoolean("granted", false)) {
+                        // 权限已授予，执行操作
+                        if (imageType == "FACE") {
+                            LivenessCallbackManager.setCallback(handler)
+                            LivenessDetectionSDK.from(activity)
+                                .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
+                                .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
+                                .start()
+                        } else {
+                            startCameraActivity(activity, imageType, handler)
+                        }
+                    } else if (json.optBoolean("shouldAskAgain", false)) {
+                        // 第一次拒绝，再次请求权限
+                        PermissionHelper.requestCameraPermission(activity, object : CompletionHandler<String> {
+                            override fun complete(result: String?) {
+                                try {
+                                    val json2 = org.json.JSONObject(result ?: "{}")
+                                    if (json2.optBoolean("granted", false)) {
+                                        // 权限已授予，执行操作
+                                        if (imageType == "FACE") {
+                                            LivenessCallbackManager.setCallback(handler)
+                                            LivenessDetectionSDK.from(activity)
+                                                .setActionSequence(Detector.DetectionType.MOUTH, Detector.DetectionType.BLINK, Detector.DetectionType.POS_YAW)
+                                                .setRequestCode(LivenessCallbackManager.REQUEST_CODE)
+                                                .start()
+                                        } else {
+                                            startCameraActivity(activity, imageType, handler)
+                                        }
+                                    } else {
+                                        // 第二次也拒绝了，弹出引导对话框
+                                        PermissionHelper.showPermissionGuideDialog(
+                                            activity = activity,
+                                            permissionName = "相机",
+                                            handler = object : CompletionHandler<String> {
+                                                override fun complete(result: String?) {
+                                                    handler.complete("""{"success": false, "error": "Camera permission denied, please enable in settings"}""")
+                                                }
+                                                override fun complete() {}
+                                                override fun setProgressData(value: String?) {}
+                                            }
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    handler.complete("""{"success": false, "error": "Permission result parse error"}""")
+                                }
+                            }
+                            override fun complete() {}
+                            override fun setProgressData(value: String?) {}
+                        })
+                    } else {
+                        // 永久拒绝（已选择"不再询问"），弹出引导对话框
+                        PermissionHelper.showPermissionGuideDialog(
+                            activity = activity,
+                            permissionName = "相机",
+                            handler = object : CompletionHandler<String> {
+                                override fun complete(result: String?) {
+                                    handler.complete("""{"success": false, "error": "Camera permission denied, please enable in settings"}""")
+                                }
+                                override fun complete() {}
+                                override fun setProgressData(value: String?) {}
+                            }
+                        )
+                    }
+                } catch (e: Exception) {
+                    handler.complete("""{"success": false, "error": "Permission result parse error"}""")
+                }
+            }
+
+            override fun complete() {}
+
+            override fun setProgressData(value: String?) {}
+        })
     }
 
     /**
@@ -975,32 +1030,83 @@ class DSBridgeInterface(private val context: Context) {
 
         // 检查联系人权限
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            // 保存回调，请求权限后再打开选择器
-            val pendingHandler = handler
-            PermissionHelper.requestContactsPermission(activity, object : CompletionHandler<String> {
-                override fun complete(result: String?) {
-                    try {
-                        val json = org.json.JSONObject(result ?: "{}")
-                        if (json.optBoolean("granted", false)) {
-                            // 权限已授予，打开选择器
-                            startContactPicker(activity, pendingHandler)
-                        } else {
-                            // 权限被拒绝
-                            pendingHandler.complete("""{"success": false, "error": "Contacts permission denied"}""")
-                        }
-                    } catch (e: Exception) {
-                        pendingHandler.complete("""{"success": false, "error": "Permission result parse error"}""")
-                    }
-                }
-
-                override fun complete() {}
-
-                override fun setProgressData(value: String?) {}
-            })
+            // 请求联系人权限，包含完整的拒绝处理流程
+            requestContactsPermissionWithGuide(activity, handler)
         } else {
             // 已有权限，直接打开选择器
             startContactPicker(activity, handler)
         }
+    }
+
+    /**
+     * 请求联系人权限，包含引导对话框流程
+     * 第一次拒绝：再次请求
+     * 永久拒绝：弹出引导对话框
+     */
+    private fun requestContactsPermissionWithGuide(
+        activity: android.app.Activity,
+        handler: CompletionHandler<String>
+    ) {
+        PermissionHelper.requestContactsPermission(activity, object : CompletionHandler<String> {
+            override fun complete(result: String?) {
+                try {
+                    val json = org.json.JSONObject(result ?: "{}")
+                    if (json.optBoolean("granted", false)) {
+                        // 权限已授予，打开选择器
+                        startContactPicker(activity, handler)
+                    } else if (json.optBoolean("shouldAskAgain", false)) {
+                        // 第一次拒绝，再次请求权限
+                        PermissionHelper.requestContactsPermission(activity, object : CompletionHandler<String> {
+                            override fun complete(result: String?) {
+                                try {
+                                    val json2 = org.json.JSONObject(result ?: "{}")
+                                    if (json2.optBoolean("granted", false)) {
+                                        // 权限已授予，打开选择器
+                                        startContactPicker(activity, handler)
+                                    } else {
+                                        // 第二次也拒绝了，弹出引导对话框
+                                        PermissionHelper.showPermissionGuideDialog(
+                                            activity = activity,
+                                            permissionName = "联系人",
+                                            handler = object : CompletionHandler<String> {
+                                                override fun complete(result: String?) {
+                                                    handler.complete("""{"success": false, "error": "Contacts permission denied, please enable in settings"}""")
+                                                }
+                                                override fun complete() {}
+                                                override fun setProgressData(value: String?) {}
+                                            }
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    handler.complete("""{"success": false, "error": "Permission result parse error"}""")
+                                }
+                            }
+                            override fun complete() {}
+                            override fun setProgressData(value: String?) {}
+                        })
+                    } else {
+                        // 永久拒绝（已选择"不再询问"），弹出引导对话框
+                        PermissionHelper.showPermissionGuideDialog(
+                            activity = activity,
+                            permissionName = "联系人",
+                            handler = object : CompletionHandler<String> {
+                                override fun complete(result: String?) {
+                                    handler.complete("""{"success": false, "error": "Contacts permission denied, please enable in settings"}""")
+                                }
+                                override fun complete() {}
+                                override fun setProgressData(value: String?) {}
+                            }
+                        )
+                    }
+                } catch (e: Exception) {
+                    handler.complete("""{"success": false, "error": "Permission result parse error"}""")
+                }
+            }
+
+            override fun complete() {}
+
+            override fun setProgressData(value: String?) {}
+        })
     }
 
     /**

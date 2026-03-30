@@ -177,6 +177,7 @@ class MainActivity : AppCompatActivity() {
 
         // 处理从设置界面返回的结果
         PermissionDialogManager.onActivityResult(requestCode, resultCode, data)
+        PermissionHelper.onActivityResult(requestCode, resultCode, data)
     }
 
     /**
@@ -216,8 +217,7 @@ class MainActivity : AppCompatActivity() {
                         // 上传成功，返回服务器URL
                         LivenessCallbackManager.notifySuccessWithUrl(
                             imageUrl = result.imageUrl,
-                            httpImageUrl = result.httpImageUrl,
-                            livenessScore = livenessScore
+                            httpImageUrl = result.httpImageUrl
                         )
                     } else {
                         // 上传失败
