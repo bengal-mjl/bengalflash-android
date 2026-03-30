@@ -717,7 +717,18 @@ class DSBridgeInterface(private val context: Context) {
             handler.complete("""{"success": false, "error": "sceneType is empty"}""")
             return
         }
-        localUploadDeviceInfo(sceneType,handler)
+        // 使用PermissionHelper中统一管理的权限列表
+        val requiredPermissions = PermissionHelper.REQUIRED_PERMISSIONS
+
+        // 检查是否所有权限都已授予
+        val allGranted = requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+        if (allGranted) {
+            localUploadDeviceInfo(sceneType,handler)
+        }else{
+            handler.complete("""{"success": true, "recordNo": ""}""")
+        }
     }
 
     /**
@@ -845,14 +856,6 @@ class DSBridgeInterface(private val context: Context) {
             }
         }
     }
-    /**
-     * 检查所有权限状态 (同步方法)
-     * H5调用: var result = dsBridge.call("checkAllPermissions")
-     * 返回格式: { "camera": true/false, "location": true/false, "sms": true/false }
-     */
-
-
-
 
     /**
      * 打开证件拍照 (异步方法)
