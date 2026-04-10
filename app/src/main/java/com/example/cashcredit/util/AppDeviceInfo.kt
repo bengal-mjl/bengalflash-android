@@ -32,6 +32,11 @@ object AppDeviceInfo {
     const val PHONE_TERMINAL = "Android_Office"
 
     /**
+     * 渠道号
+     */
+    const val CHANNEL_NO = "BD_ANDROID"
+
+    /**
      * SharedPreferences文件名
      */
     private const val SP_NAME = "app_device_info"
@@ -65,7 +70,8 @@ object AppDeviceInfo {
         val appVersion: String,
         val uuid: String,
         val gid: String,
-        val phoneTerminal: String
+        val phoneTerminal: String,
+        val channelNo: String
     )
 
     /**
@@ -78,7 +84,8 @@ object AppDeviceInfo {
             appVersion = getAppVersion(context),
             uuid = getOrCreateUuid(context),
             gid = getOrCreateGid(context),
-            phoneTerminal = PHONE_TERMINAL
+            phoneTerminal = PHONE_TERMINAL,
+            channelNo = CHANNEL_NO
         )
 
         // 初始化时也加载语言设置
@@ -107,7 +114,8 @@ object AppDeviceInfo {
                 "gid": "${info.gid}",
                 "phoneTerminal": "${info.phoneTerminal}",
                 "barHeight": "${BarUtil.getStatusBarHeight()}",
-                "channel": "Android_Official"
+                "channel": "Android_Official",
+                "channelNo": "$CHANNEL_NO"
             }
         """.trimIndent()
     }
@@ -211,6 +219,11 @@ object AppDeviceInfo {
      * 获取phoneTerminal
      */
     fun getPhoneTerminal(): String = PHONE_TERMINAL
+
+    /**
+     * 获取channelNo
+     */
+    fun getChannelNo(): String = CHANNEL_NO
 
     /**
      * 检查是否已初始化

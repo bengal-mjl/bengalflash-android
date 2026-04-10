@@ -3,6 +3,7 @@ package com.example.cashcredit.network
 import android.content.Context
 import com.example.cashcredit.util.AppDeviceInfo
 import com.example.cashcredit.util.DeviceUtil
+import android.util.Base64
 import okhttp3.Interceptor
 import okhttp3.Response
 import org.json.JSONObject
@@ -33,9 +34,13 @@ class ApiInterceptor(
             requestBuilder.addHeader(HEADER_AUTHORIZATION, "Bearer $token")
         }
 
-        // 添加设备信息JSON
+        // 添加设备信息JSON (Base64编码，避免特殊字符导致的请求头解析问题)
         val deviceInfoJson = buildDeviceInfoJson()
-        requestBuilder.addHeader(HEADER_DEVICE_INFO, deviceInfoJson)
+        val deviceInfoBase64 = Base64.encodeToString(
+            deviceInfoJson.toByteArray(Charsets.UTF_8),
+            Base64.NO_WRAP
+        )
+        requestBuilder.addHeader(HEADER_DEVICE_INFO, deviceInfoBase64)
 
         // 添加Content-Type (仅对POST/PUT/PATCH请求)
         val method = originalRequest.method
@@ -62,6 +67,7 @@ class ApiInterceptor(
                 json.put("uuid", AppDeviceInfo.getUuid())
                 json.put("gid", AppDeviceInfo.getGid())
                 json.put("phoneTerminal", AppDeviceInfo.getPhoneTerminal())
+                json.put("channelNo", AppDeviceInfo.getChannelNo())
             } else {
                 // 如果AppDeviceInfo未初始化，使用备用方式获取
                 json.put("appTerminal", "ANDROID")
@@ -69,6 +75,7 @@ class ApiInterceptor(
                 json.put("uuid", DeviceUtil.getDeviceId(context))
                 json.put("gid", "")
                 json.put("phoneTerminal", "ANDROID")
+                json.put("channelNo", AppDeviceInfo.CHANNEL_NO )
             }
         } catch (e: Exception) {
             e.printStackTrace()

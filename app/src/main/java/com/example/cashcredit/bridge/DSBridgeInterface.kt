@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.example.cashcredit.config.AppConfig
 import com.example.cashcredit.repository.ImageRepository
 import com.example.cashcredit.ui.TakePhotoActivity
+import com.example.cashcredit.ui.dialog.JsPermissionDescDialog
 import com.example.cashcredit.util.AppDeviceInfo
 import com.example.cashcredit.util.AppListUtil
 import com.example.cashcredit.util.CameraCallbackManager
@@ -563,15 +564,10 @@ class DSBridgeInterface(private val context: Context) {
 
     /**
      * 根据权限全称数组请求权限 (异步方法)
-     * H5调用: dsBridge.call("requestPermissions", ["android.permission.CAMERA", "android.permission.READ_SMS"], function(result) {})
-     * 或: dsBridge.call("requestPermissions", {"permissions": ["android.permission.CAMERA"]}, function(result) {})
-     *
      * 权限全称示例:
-     * - android.permission.CAMERA: 相机权限
      * - android.permission.ACCESS_FINE_LOCATION: 精确位置权限
      * - android.permission.ACCESS_COARSE_LOCATION: 粗略位置权限
      * - android.permission.READ_SMS: 短信读取权限
-     * - android.permission.READ_CONTACTS: 联系人读取权限
      * - android.permission.READ_PHONE_STATE: 电话状态权限
      *
      * 返回格式: {"success": true, "results": {"android.permission.CAMERA": true, "android.permission.READ_SMS": false}}
@@ -623,8 +619,34 @@ class DSBridgeInterface(private val context: Context) {
             return
         }
 
-        // 请求权限
-        PermissionHelper.requestPermissionsByNames(activity, permissions, handler)
+        // 检查是否有需要显示弹窗的权限（SMS、READ_PHONE_STATE、Location）
+        val supportedPermissions = permissions.filter { permission ->
+            permission == Manifest.permission.READ_SMS ||
+            permission == Manifest.permission.READ_PHONE_STATE ||
+            permission == Manifest.permission.ACCESS_FINE_LOCATION ||
+            permission == Manifest.permission.ACCESS_COARSE_LOCATION
+        }
+
+        // 筛选出未授权的需要弹窗的权限
+        val unGrantedSupportedPermissions = supportedPermissions.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (unGrantedSupportedPermissions.isNotEmpty()) {
+            // 有未授权的支持弹窗的权限，先显示权限描述弹窗
+            val dialog = JsPermissionDescDialog(
+                activity = activity,
+                permissions = unGrantedSupportedPermissions,
+                onAccessClick = {
+                    // 点击Access按钮后，请求权限
+                    PermissionHelper.requestPermissionsByNames(activity, permissions, handler)
+                }
+            )
+            dialog.show()
+        } else {
+            // 没有需要弹窗的未授权权限，直接请求权限
+            PermissionHelper.requestPermissionsByNames(activity, permissions, handler)
+        }
     }
 
     /**
