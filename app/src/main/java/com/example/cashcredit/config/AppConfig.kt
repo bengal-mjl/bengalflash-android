@@ -36,9 +36,9 @@ object AppConfig {
      * 测试H5页面URL（用于调试）
      * 可以指向本地HTML文件或测试服务器
      */
-    var H5_URL_TEST = "file:///android_asset/test.html"//本地
+//    var H5_URL_TEST = "file:///android_asset/test.html"//本地
 //    var H5_URL_TEST = "http://192.168.31.111:3003"//帆本地测试
-//    var H5_URL_TEST = "http://h5-dev.bengalflash.com"//H5测试环境
+    var H5_URL_TEST = "http://h5-dev.bengalflash.com"//H5测试环境
 
     /**
      * 是否使用测试URL

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/twairt_ortho_agreement_bg"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:maxHeight="500dp">
+    android:background="@drawable/twairt_ortho_agreement_bg"
+    android:maxHeight="500dp"
+    android:orientation="vertical">
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -16,84 +16,87 @@
         android:scrollbars="none">
 
         <LinearLayout
-            android:orientation="vertical"
-            android:padding="16dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
-                android:textColor="#333333"
-                android:gravity="center"
                 android:id="@+id/app_name"
+                style="@style/PermissionTitle"
+                android:gravity="center"
                 android:text="@string/app_name"
-                style="@style/PermissionTitle"/>
+                android:textColor="#333333" />
 
             <TextView
-                android:textColor="#333333"
                 android:id="@+id/desc_app_name"
+                style="@style/PermissionDesc"
                 android:layout_marginTop="12dp"
                 android:text="During use, Twairt Ortho requires you to provide or allow us to collect this sensitive data, but it can only be used after your consent"
-                style="@style/PermissionDesc"/>
+                android:textColor="#333333" />
 
             <!-- Location Permission Section -->
             <TextView
                 android:id="@+id/title_location"
-                android:visibility="gone"
+                style="@style/PermissionTitle"
                 android:layout_marginTop="12dp"
                 android:text="Location"
-                style="@style/PermissionTitle"/>
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/desc_location"
-                android:visibility="gone"
+                style="@style/PermissionDesc"
                 android:text="Access: This app will access your device&apos;s obfuscated location information, such as latitude and longitude, and GPS. Purpose: By obtaining your location, we can accurately determine your location and recommend loan products and services that comply with local policies and market conditions. Furthermore, location information helps us determine the authenticity and security of transactions during critical stages such as risk assessment and post-loan management. Safeguards: This app only accesses location information when you use specific location-related service features and will never use it for any unrelated purposes. Data will be encrypted and uploaded to the server: https://api.twairtortho.com/  "
-                style="@style/PermissionDesc"/>
+                android:visibility="gone" />
 
             <!-- SMS Permission Section -->
             <TextView
                 android:id="@+id/title_sms"
-                android:visibility="gone"
+                style="@style/PermissionTitle"
                 android:layout_marginTop="12dp"
                 android:text="SMS Permission"
-                style="@style/PermissionTitle"/>
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/desc_sms"
-                android:visibility="gone"
+                style="@style/PermissionDesc"
                 android:text="To ensure applicants are genuine and prevent loan fraud, TwairtOrtho needs to access some user SMS information. This information is primarily used to determine whether users are using real devices to conduct independent loan transactions and whether multiple loan transactions are made on the same device or phone number. If this occurs, it may be considered loan fraud.  At the same time, TwairtOrtho actively responds to Google&apos;s requirements for user personal privacy policy and only collects the following financial information:[Credit,fee,BDT,bKash,received,deposit,,atm,wallet ,টাকা,অভিনন্দন,টাকা সমন্বয়,ট্রানজ্যাকশন,সফল,Balance,Tk,cash,amount,TrxID,Debit,txnid,taka,uddokta,transaction,ref,account,money,loan,deducted,win,A/C,payment,fee,bill,purchase]This information will be used to evaluate the user&apos;s financial situation, and the credit model will grant the corresponding credit limit based on the user&apos;s financial activities. The collected information will be encrypted and uploaded to the server: https://api.twairtortho.com, and deleted regularly."
-                style="@style/PermissionDesc"/>
+                android:visibility="gone" />
 
             <!-- Device Permission Section -->
             <TextView
                 android:id="@+id/title_device"
-                android:visibility="gone"
+                style="@style/PermissionTitle"
                 android:layout_marginTop="12dp"
                 android:text="Device"
-                style="@style/PermissionTitle"/>
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/desc_device"
-                android:visibility="gone"
+                style="@style/PermissionDesc"
                 android:text="Access: This app will access your device&apos;s IMEI, MAC address, device model, operating system version, and other information. Purpose: This information is primarily used for device identification to ensure the security of your account across different devices. It also helps us optimize the app&apos;s compatibility and performance across various devices, providing you with a better user experience. Protection Measures: We use secure and reliable technology to collect and store device information and strictly restrict access rights to effectively prevent unauthorized access and use. Data will be encrypted and uploaded to our server: https://api.twairtortho.com/ "
-                style="@style/PermissionDesc"/>
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 
     <LinearLayout
+        android:id="@+id/btn_container"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="15dp"
+        android:background="@color/white"
         android:gravity="center"
         android:orientation="vertical"
-        android:id="@+id/btn_container"
-        android:background="@color/white"
         android:paddingLeft="30dp"
-        android:layout_marginBottom="15dp"
-        android:paddingRight="30dp"
-        android:layout_width="match_parent"
-        android:layout_height="60dp">
+        android:paddingRight="30dp">
 
         <Button
-            android:textStyle="bold"
-            android:textColor="#ffffff"
             android:id="@+id/btn_access"
-            android:background="@drawable/twairt_ortho_loan_btn"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="Access"/>
+            android:background="@drawable/twairt_ortho_loan_btn"
+            android:text="Access"
+            android:textColor="#ffffff"
+            android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>
