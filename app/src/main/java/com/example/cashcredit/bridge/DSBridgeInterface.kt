@@ -13,6 +13,7 @@ import com.example.cashcredit.config.AppConfig
 import com.example.cashcredit.repository.ImageRepository
 import com.example.cashcredit.ui.TakePhotoActivity
 import com.example.cashcredit.ui.dialog.JsPermissionDescDialog
+import com.example.cashcredit.util.AlbumPickerManager
 import com.example.cashcredit.util.AppDeviceInfo
 import com.example.cashcredit.util.AppListUtil
 import com.example.cashcredit.util.CameraCallbackManager
@@ -880,10 +881,13 @@ class DSBridgeInterface(private val context: Context) {
     }
 
     /**
-     * 打开证件拍照 (异步方法)
+     * 打开证件拍照或相册选择 (异步方法)
      * H5调用: dsBridge.call("openIdCardCamera", null, function(result) {})
      * 或指定证件类型: dsBridge.call("openIdCardCamera", {"imageType": "ID_CARD_FRONT"}, function(result) {})
+     * 或指定来源: dsBridge.call("openIdCardCamera", {"imageType": "ID_CARD_FRONT", "value": "album"}, function(result) {})
      * imageType可选值: ID_CARD_FRONT(身份证正面), ID_CARD_BACK(身份证背面), FACE(人脸)
+     * value可选值: camera(打开相机拍照), album(从相册选择照片)
+     * 默认行为: value为空或camera时打开相机拍照
      */
     @JavascriptInterface
     fun openIdCardCamera(args: Any?, handler: CompletionHandler<String>) {
@@ -894,12 +898,13 @@ class DSBridgeInterface(private val context: Context) {
 
         val activity = context as android.app.Activity
 
-        // 获取证件类型 (兼容String和JSONObject两种参数类型)
-        val imageType = try {
+        // 解析参数
+        var imageType = TakePhotoActivity.ID_FRONT
+        var imageSource = "camera" // 默认打开相机
+
+        try {
             // 先检查是否为 JSONObject.NULL 或 null
-            if (args == null || args == org.json.JSONObject.NULL) {
-                TakePhotoActivity.ID_FRONT
-            } else {
+            if (args != null && args != org.json.JSONObject.NULL) {
                 val jsonObj = when (args) {
                     is org.json.JSONObject -> {
                         // 再次检查是否是 JSONObject.NULL
@@ -907,13 +912,98 @@ class DSBridgeInterface(private val context: Context) {
                     }
                     is String -> if (args.isNotEmpty()) org.json.JSONObject(args) else null
                     else -> null
+
                 }
-                jsonObj?.optString(ImageRepository.ImageType.imageType, TakePhotoActivity.ID_FRONT) ?: TakePhotoActivity.ID_FRONT
+                if (jsonObj != null) {
+                    imageType = jsonObj.optString(ImageRepository.ImageType.imageType, TakePhotoActivity.ID_FRONT)
+                    imageSource = jsonObj.optString("imageSource", "camera")
+                }
             }
         } catch (e: Exception) {
-            TakePhotoActivity.ID_FRONT
+            // 参数解析失败，使用默认值
         }
 
+        // 根据value决定执行哪种操作
+        if (imageSource == "album") {
+            // 从相册选择照片
+            openAlbumPicker(activity, imageType, handler)
+        } else {
+            // 打开相机拍照（默认行为）
+            openCameraPicker(activity, imageType, handler)
+        }
+    }
+
+    /**
+     * 从相册选择照片
+     */
+    private fun openAlbumPicker(
+        activity: android.app.Activity,
+        imageType: String,
+        handler: CompletionHandler<String>
+    ) {
+        // 保存回调
+        AlbumPickerManager.setCallback(handler, imageType)
+
+        // 检查是否需要权限（Android 12及以下需要存储权限）
+        val requiredPermissions = AlbumPickerManager.getRequiredPermissions()
+
+        if (requiredPermissions.isEmpty()) {
+            // Android 13+ 不需要权限，直接打开相册
+            startAlbumPickerActivity(activity)
+        } else {
+            // Android 12及以下需要检查存储权限
+            if (AlbumPickerManager.hasAlbumPermission(context)) {
+                // 已有权限，直接打开相册
+                startAlbumPickerActivity(activity)
+            } else {
+                // 请求存储权限
+                requestAlbumPermissionWithGuide(activity, handler, imageType)
+            }
+        }
+    }
+
+    /**
+     * 请求相册权限，包含引导对话框流程
+     */
+    private fun requestAlbumPermissionWithGuide(
+        activity: android.app.Activity,
+        handler: CompletionHandler<String>,
+        imageType: String
+    ) {
+        val requiredPermissions = AlbumPickerManager.getRequiredPermissions()
+
+        ActivityCompat.requestPermissions(
+            activity,
+            requiredPermissions,
+            com.example.cashcredit.MainActivity.REQUEST_CODE_ALBUM_PERMISSION
+        )
+
+        // 存储回调，等待权限结果（权限结果在MainActivity的onRequestPermissionsResult中处理）
+        AlbumPickerManager.setCallback(handler, imageType)
+    }
+
+    /**
+     * 启动相册选择Activity
+     */
+    private fun startAlbumPickerActivity(activity: android.app.Activity) {
+        if (activity is com.example.cashcredit.MainActivity) {
+            activity.startAlbumPicker()
+        } else {
+            // 如果不是MainActivity，使用传统方式
+            val intent = android.content.Intent(android.content.Intent.ACTION_PICK)
+            intent.type = "image/*"
+            activity.startActivityForResult(intent, AlbumPickerManager.REQUEST_CODE)
+        }
+    }
+
+    /**
+     * 打开相机拍照
+     */
+    private fun openCameraPicker(
+        activity: android.app.Activity,
+        imageType: String,
+        handler: CompletionHandler<String>
+    ) {
         // 检查相机权限
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             // 请求相机权限，包含完整的拒绝处理流程

@@ -1,6 +1,7 @@
 package com.example.cashcredit.network
 
 import android.content.Context
+import android.util.Log
 import com.example.cashcredit.util.AppDeviceInfo
 import com.example.cashcredit.util.DeviceUtil
 import android.util.Base64
@@ -17,6 +18,7 @@ class ApiInterceptor(
 ) : Interceptor {
 
     companion object {
+        private const val TAG = "ApiInterceptor"
         const val HEADER_AUTHORIZATION = "Authorization"
         const val HEADER_DEVICE_INFO = "deviceInfo"
         const val HEADER_PLATFORM = "Platform"
@@ -31,16 +33,23 @@ class ApiInterceptor(
 
         // 添加Authorization头 (如果有Token)
         TokenManager.getToken()?.let { token ->
+            Log.d(TAG, "添加Authorization头")
             requestBuilder.addHeader(HEADER_AUTHORIZATION, "Bearer $token")
         }
 
         // 添加设备信息JSON (Base64编码，避免特殊字符导致的请求头解析问题)
-        val deviceInfoJson = buildDeviceInfoJson()
-        val deviceInfoBase64 = Base64.encodeToString(
-            deviceInfoJson.toByteArray(Charsets.UTF_8),
-            Base64.NO_WRAP
-        )
-        requestBuilder.addHeader(HEADER_DEVICE_INFO, deviceInfoBase64)
+        try {
+            val deviceInfoJson = buildDeviceInfoJson()
+            Log.d(TAG, "设备信息JSON: $deviceInfoJson")
+            val deviceInfoBase64 = Base64.encodeToString(
+                deviceInfoJson.toByteArray(Charsets.UTF_8),
+                Base64.NO_WRAP
+            )
+            Log.d(TAG, "设备信息Base64长度: ${deviceInfoBase64.length}")
+            requestBuilder.addHeader(HEADER_DEVICE_INFO, deviceInfoBase64)
+        } catch (e: Exception) {
+            Log.e(TAG, "构建设备信息失败: ${e.message}", e)
+        }
 
         // 添加Content-Type (仅对POST/PUT/PATCH请求)
         val method = originalRequest.method
@@ -51,7 +60,12 @@ class ApiInterceptor(
         // 添加Accept头
         requestBuilder.addHeader(HEADER_ACCEPT, "application/json")
 
+        // 添加Platform头
+        requestBuilder.addHeader(HEADER_PLATFORM, PLATFORM_ANDROID)
+
         val newRequest = requestBuilder.build()
+        Log.d(TAG, "请求URL: ${newRequest.url}, Method: ${newRequest.method}")
+
         return chain.proceed(newRequest)
     }
 

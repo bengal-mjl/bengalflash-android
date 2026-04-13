@@ -203,7 +203,14 @@
         </div>
 
         <div class="card">
-            <h2>相机功能</h2>
+            <h2>相机/相册功能</h2>
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px;">选择方式: </label>
+                <select id="cameraModeSelect" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-left: 5px;">
+                    <option value="camera">相机拍照</option>
+                    <option value="album">相册选择</option>
+                </select>
+            </div>
             <button onclick="openIdCardCamera('ID_CARD_FRONT')">身份证正面</button>
             <button onclick="openIdCardCamera('ID_CARD_BACK')" class="secondary">身份证背面</button>
             <button onclick="openIdCardCamera('FACE')">人脸拍照</button>
@@ -737,23 +744,31 @@
             result.style.display = 'block';
         }
 
-        // Open ID card camera
+        // Open ID card camera or album
         function openIdCardCamera(imageType) {
             var result = document.getElementById('cameraResult');
             var previewDiv = document.getElementById('cameraImagePreview');
+            var modeSelect = document.getElementById('cameraModeSelect');
+            var value = modeSelect ? modeSelect.value : 'camera'; // 获取选择的模式：camera 或 album
 
             if (dsBridge) {
-                result.innerHTML = '正在打开相机...\n图片类型: ' + imageType;
+                var modeText = value === 'album' ? '相册' : '相机';
+                result.innerHTML = '正在打开' + modeText + '...\n图片类型: ' + imageType;
                 result.style.display = 'block';
                 previewDiv.style.display = 'none';
 
-                dsBridge.call('openIdCardCamera', {imageType: imageType}, function(response) {
+                // 传递 imageType 和 value 参数
+                dsBridge.call('openIdCardCamera', {imageType: imageType, value: value}, function(response) {
                     try {
                         var data = JSON.parse(response);
                         if (data.success) {
-                            var html = '拍照上传成功!\n';
+                            var modeText = value === 'album' ? '相册选择' : '拍照';
+                            var html = modeText + '上传成功!\n';
                             html += '图片类型: ' + imageType + '\n';
-                            html += '本地路径: ' + data.imagePath + '\n';
+                            html += '来源: ' + modeText + '\n';
+                            if (data.imagePath) {
+                                html += '本地路径: ' + data.imagePath + '\n';
+                            }
 
                             // 优先使用Base64显示图片（本地file协议加载http图片可能受限）
                             if (data.imageBase64) {
@@ -781,7 +796,8 @@
                         } else {
                             result.innerHTML = '操作失败: ' + (data.error || '未知错误');
                             if (data.cancelled) {
-                                result.innerHTML = '用户取消了拍照';
+                                var modeText = value === 'album' ? '相册选择' : '拍照';
+                                result.innerHTML = '用户取消了' + modeText;
                             }
                             result.className = 'result error';
                         }

@@ -3,10 +3,14 @@ package com.example.cashcredit
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.ProgressBar
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.cashcredit.bridge.DSBridgeInterface
@@ -14,6 +18,7 @@ import com.example.cashcredit.config.AppConfig
 import com.example.cashcredit.network.RetrofitClient
 import com.example.cashcredit.repository.ImageRepository
 import com.example.cashcredit.ui.TakePhotoActivity
+import com.example.cashcredit.util.AlbumPickerManager
 import com.example.cashcredit.util.BarUtil
 import com.example.cashcredit.util.LanguageUtil
 import com.example.cashcredit.util.ContactPickerManager
@@ -36,6 +41,31 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dWebView: DWebView
     private lateinit var progressBar: ProgressBar
     private lateinit var webViewManager: DWebViewManager
+
+    // 相册选择器 - Android 13+ 使用 Photo Picker
+    private val pickMediaLauncher = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            // 相册选择成功
+            AlbumPickerManager.handlePickResult(this, uri)
+        } else {
+            // 用户取消选择
+            AlbumPickerManager.notifyCancelled()
+        }
+    }
+
+    // 相册选择器 - Android 12及以下使用传统的 Intent
+    private val legacyAlbumLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data?.data != null) {
+            val uri = result.data!!.data!!
+            AlbumPickerManager.handlePickResult(this, uri)
+        } else {
+            AlbumPickerManager.notifyCancelled()
+        }
+    }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LanguageUtil.attachBaseContext(newBase))
@@ -133,11 +163,45 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        // 处理相册权限请求结果
+        if (requestCode == REQUEST_CODE_ALBUM_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                // 权限已授予，启动相册选择
+                startAlbumPicker()
+            } else {
+                // 权限被拒绝
+                AlbumPickerManager.notifyFailure("Storage permission denied")
+            }
+            return
+        }
+
         // 先让PermissionDialogManager处理
         if (!PermissionDialogManager.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
             // 如果不是权限弹窗的请求，交给PermissionHelper处理
             PermissionHelper.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
+    }
+
+    /**
+     * 启动相册选择
+     * Android 13+ 使用 Photo Picker（不需要权限）
+     * Android 12及以下使用传统的 Intent（需要存储权限）
+     */
+    fun startAlbumPicker() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 使用 Photo Picker
+            pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        } else {
+            // Android 12及以下使用传统的相册选择
+            val intent = android.content.Intent(android.content.Intent.ACTION_PICK)
+            intent.type = "image/*"
+            legacyAlbumLauncher.launch(intent)
+        }
+    }
+
+    companion object {
+         const val REQUEST_CODE_ALBUM_PERMISSION = 200
     }
 
     /**
