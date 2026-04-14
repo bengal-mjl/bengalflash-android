@@ -949,12 +949,21 @@ class DSBridgeInterface(private val context: Context) {
 
         if (requiredPermissions.isEmpty()) {
             // Android 13+ 不需要权限，直接打开相册
-            startAlbumPickerActivity(activity)
+              try {
+                startAlbumPickerActivity(activity)
+            } catch (e: Exception) {
+                android.util.Log.e("DSBridgeInterface", "Failed to start album picker", e)
+                AlbumPickerManager.notifyFailure("Failed to start album picker: ${e.message}")
+            }
         } else {
             // Android 12及以下需要检查存储权限
             if (AlbumPickerManager.hasAlbumPermission(context)) {
-                // 已有权限，直接打开相册
-                startAlbumPickerActivity(activity)
+                // 已有权限，直接打开相册 android.util.Log.d("DSBridgeInterface", "Permission already granted, starting album picker")
+                try {
+                    startAlbumPickerActivity(activity)
+                } catch (e: Exception) {
+                    AlbumPickerManager.notifyFailure("Failed to start album picker: ${e.message}")
+                }
             } else {
                 // 请求存储权限
                 requestAlbumPermissionWithGuide(activity, handler, imageType)

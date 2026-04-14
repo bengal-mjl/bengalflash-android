@@ -168,6 +168,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_CODE_ALBUM_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 // 权限已授予，启动相册选择
+                Log.d("MainActivity", "Album permission granted, starting album picker")
                 startAlbumPicker()
             } else {
                 // 权限被拒绝
@@ -189,14 +190,49 @@ class MainActivity : AppCompatActivity() {
      * Android 12及以下使用传统的 Intent（需要存储权限）
      */
     fun startAlbumPicker() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13+ 使用 Photo Picker
-            pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        } else {
-            // Android 12及以下使用传统的相册选择
-            val intent = android.content.Intent(android.content.Intent.ACTION_PICK)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+ 使用 Photo Picker
+                // 检查 Photo Picker 是否可用
+                val isPhotoPickerAvailable = ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(this)
+                if (isPhotoPickerAvailable) {
+                    try {
+                        pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    } catch (e: Exception) {
+                        // Photo Picker 可能失败，尝试使用传统方式作为回退
+                        launchLegacyPicker()
+                    }
+                } else {
+                    // Photo Picker 不可用，使用传统方式
+                     launchLegacyPicker()
+                }
+            } else {
+                // Android 12及以下使用传统的相册选择
+               launchLegacyPicker()
+            }
+        } catch (e: Exception) {
+           AlbumPickerManager.notifyFailure("Failed to launch album picker: ${e.message}")
+        }
+    }
+
+    /**
+     * 启动传统相册选择器
+     */
+    private fun launchLegacyPicker() {
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT)
             intent.type = "image/*"
+            intent.addCategory(android.content.Intent.CATEGORY_OPENABLE)
             legacyAlbumLauncher.launch(intent)
+        } catch (e: Exception) {
+            // 尝试使用 ACTION_PICK 作为最后的回退
+            try {
+                val pickIntent = android.content.Intent(android.content.Intent.ACTION_PICK)
+                pickIntent.type = "image/*"
+                legacyAlbumLauncher.launch(pickIntent)
+            } catch (e2: Exception) {
+                AlbumPickerManager.notifyFailure("Failed to launch album picker: ${e2.message}")
+            }
         }
     }
 

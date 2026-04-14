@@ -25,6 +25,15 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
 
+    <!-- 存储权限 (用于相册选择，Android 12及以下需要) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"
+        tools:ignore="ScopedStorage"/>
+    <!-- Android 13+ 图片选择权限 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
     <!-- 应用列表查询配置 (Android 11+) -->
     <queries>
         <!-- 特定应用包名查询 -->

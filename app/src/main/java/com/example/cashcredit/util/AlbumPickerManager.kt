@@ -162,12 +162,22 @@ object AlbumPickerManager {
             val tempFile = File(context.cacheDir, "album_${System.currentTimeMillis()}.jpg")
 
             // 从Uri读取数据并写入临时文件
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                FileOutputStream(tempFile).use { outputStream ->
-                    inputStream.copyTo(outputStream)
+            val inputStream = context.contentResolver.openInputStream(uri)
+            Log.d(TAG, "inputStream opened: ${inputStream != null}")
+
+            if (inputStream == null) {
+                Log.e(TAG, "Failed to open input stream for uri: $uri")
+                return null
+            }
+
+            inputStream.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    val bytesCopied = input.copyTo(output)
+                    Log.d(TAG, "Bytes copied: $bytesCopied")
                 }
             }
 
+            Log.d(TAG, "File created successfully: ${tempFile.absolutePath}, size=${tempFile.length()}")
             tempFile.absolutePath
         } catch (e: Exception) {
             Log.e(TAG, "Failed to convert Uri to local file", e)
@@ -195,11 +205,12 @@ object AlbumPickerManager {
 
     /**
      * 获取需要的相册权限数组
-     * Android 13+ 返回空数组（不需要权限）
+     * Android 13+ 返回空数组（不需要权限，使用Photo Picker）
      * Android 12及以下返回 READ_EXTERNAL_STORAGE
      */
     fun getRequiredPermissions(): Array<String> {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ 使用 Photo Picker 不需要权限
             return emptyArray()
         }
         return arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
